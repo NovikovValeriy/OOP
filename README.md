@@ -84,4 +84,5 @@ increaseNoteDuration() - увеличивает длительность нот�
 decreaseNoteDuration() - уменьшает длительность ноты
 
 ### 2.4 Диаграмма классов
-![ClassDiagram1](https://github.com/NovikovValeriy/OOP/assets/125986599/8fe39ad0-b680-45b2-bbda-6f9856c77b97)
+![ClassDiagram1](https://github.com/NovikovValeriy/OOP/assets/125986599/a2005d59-5402-4ebd-b894-6b4e33a063d5)
+
