@@ -1,0 +1,40 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\dzmitry\\source\\repos\\4sem\\OOP\\MIDIsequencer\\Sequencer\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{C08134E7-C87E-4196-85DD-BFC46AD0AA38}|..\\..\\Library\\SequencerLibrary\\SequencerLibrary\\SequencerLibrary.csproj|c:\\users\\dzmitry\\source\\repos\\4sem\\oop\\library\\sequencerlibrary\\sequencerlibrary\\enumerators\\notenames.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "NoteNames.cs",
+              "DocumentMoniker": "C:\\Users\\dzmitry\\source\\repos\\4sem\\OOP\\Library\\SequencerLibrary\\SequencerLibrary\\Enumerators\\NoteNames.cs",
+              "RelativeDocumentMoniker": "..\\..\\Library\\SequencerLibrary\\SequencerLibrary\\Enumerators\\NoteNames.cs",
+              "ToolTip": "C:\\Users\\dzmitry\\source\\repos\\4sem\\OOP\\Library\\SequencerLibrary\\SequencerLibrary\\Enumerators\\NoteNames.cs",
+              "RelativeToolTip": "..\\..\\Library\\SequencerLibrary\\SequencerLibrary\\Enumerators\\NoteNames.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAIQAAAAFAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-29T20:14:04.25Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
