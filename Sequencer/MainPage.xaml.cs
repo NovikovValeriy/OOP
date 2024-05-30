@@ -5,42 +5,45 @@ namespace Sequencer
 {
     public partial class MainPage : ContentPage
     {
-        int count = 0;
+        int cellSize = 25;
         Color inactive = Colors.LightGray, active = Colors.LightGreen;
         public MainPage()
         {
             InitializeComponent();
             for (int i = 0; i < 128; i++)
             {
-                NoteGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = 25 });
-                NoteGrid.RowDefinitions.Add(new RowDefinition { Height = 25 });
-                NamesGrid.RowDefinitions.Add(new RowDefinition { Height = 25 });
-            }
-            for (int i = 0; i < 128; i++)
-            {
+                NamesGrid.RowDefinitions.Add(new RowDefinition { Height = cellSize });
                 var element = new BoxView { Color = Colors.Gray, Margin = new Thickness(1) };
                 var text = new Label { Text = ((NoteNames)(127 - i)).ToString(), FontSize = 10 };
-                Grid.SetRow(element, i);
-                Grid.SetColumn(element, 0);
-                Grid.SetRow(text, i);
-                Grid.SetColumn(text, 0);
-                NamesGrid.Children.Add(element);
-                NamesGrid.Children.Add(text);
+                NamesGrid.Add(element, 0, i);
+                NamesGrid.Add(text, 0, i);
+            }
+            for (int i = 0; i < 5; i++)
+            {
+                Grid measure = new Grid();
+                for (int k = 0; k < 16; k++)
+                {
+                    measure.ColumnDefinitions.Add(new ColumnDefinition { Width = cellSize });
+                }
                 for (int j = 0; j < 128; j++)
                 {
-                    element = new BoxView { Color = inactive, Margin = new Thickness(1)};
-                    var tap = new TapGestureRecognizer();
-                    tap.Tapped += (s, e) =>
+                    measure.RowDefinitions.Add(new RowDefinition { Height = cellSize });
+                    for (int k = 0; k < 16; k++)
                     {
-                        var box = (BoxView)s;
-                        if (box.Color == inactive) box.Color = active;
-                        else box.Color = inactive;
-                    };
-                    element.GestureRecognizers.Add(tap);
-                    Grid.SetRow(element, i);
-                    Grid.SetColumn(element, j);
-                    NoteGrid.Children.Add(element);
+                        var element = new BoxView { Color = inactive, Margin = new Thickness(1) };
+                        var tap = new TapGestureRecognizer();
+                        tap.Tapped += (s, e) =>
+                        {
+                            var box = (BoxView)s;
+                            if (box.Color == inactive) box.Color = active;
+                            else box.Color = inactive;
+                        };
+                        element.GestureRecognizers.Add(tap);
+                        measure.Add(element, k, j);
+                    }
                 }
+                MeasureStack.Add(measure);
+                MeasureStack.Add(new BoxView { Color = Colors.Gray, VerticalOptions = LayoutOptions.Fill, WidthRequest = 1, Margin = new Thickness(1) });
             }
         }
 
@@ -48,18 +51,11 @@ namespace Sequencer
         {
             ScrollNames.ScrollToAsync(ScrollGrid.ScrollX, ScrollGrid.ScrollY, false);
         }
-
-        //private void OnCounterClicked(object sender, EventArgs e)
-        //{
-        //    count++;
-
-        //    if (count == 1)
-        //        CounterBtn.Text = $"Clicked {count} time";
-        //    else
-        //        CounterBtn.Text = $"Clicked {count} times";
-
-        //    SemanticScreenReader.Announce(CounterBtn.Text);
-        //}
+        
+        private void NamesScrolled(object sender, ScrolledEventArgs e)
+        {
+            ScrollGrid.ScrollToAsync(ScrollNames.ScrollX, ScrollNames.ScrollY, false);
+        }
     }
 
 }

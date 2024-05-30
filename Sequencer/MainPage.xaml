@@ -38,9 +38,20 @@
             Margin="10,10,10,10"
             >
             <ScrollView
+                x:Name="TracksScroll"
+                Orientation="Vertical"
+                WidthRequest="200"
+                VerticalScrollBarVisibility="Always"
+                >
+                <VerticalStackLayout x:Name="TracksStack">
+                    
+                </VerticalStackLayout>
+            </ScrollView>
+            <ScrollView
                 x:Name="ScrollNames"
                 Orientation="Vertical"
                 VerticalScrollBarVisibility="Never"
+                Scrolled="NamesScrolled"
                 >
                 <Grid x:Name="NamesGrid">
 
@@ -50,15 +61,18 @@
             <ScrollView
                 x:Name="ScrollGrid"
                 Orientation="Both"
-                WidthRequest="700"
+                WidthRequest="1000"
                 HorizontalScrollBarVisibility="Always"
                 VerticalScrollBarVisibility="Always"
                 Scrolled="GridScrolled"
                 >
-                <Grid x:Name="NoteGrid">
+                <!--<Grid x:Name="NoteGrid">
 
 
-                </Grid>
+                </Grid>-->
+                <HorizontalStackLayout x:Name="MeasureStack">
+                    
+                </HorizontalStackLayout>
             </ScrollView>
         </HorizontalStackLayout>
     </ContentView>
