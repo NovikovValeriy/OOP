@@ -1,5 +1,7 @@
 ﻿using SequencerLibrary;
+using SequencerLibrary.Entities;
 using SequencerLibrary.Enumerators;
+using System.Diagnostics;
 
 namespace Sequencer
 {
@@ -7,9 +9,13 @@ namespace Sequencer
     {
         int cellSize = 25;
         Color inactive = Colors.LightGray, active = Colors.LightGreen;
+        private Composition? composition;
+        private Dictionary<VerticalStackLayout, HorizontalStackLayout> tracks = new Dictionary<VerticalStackLayout, HorizontalStackLayout>();
         public MainPage()
         {
+
             InitializeComponent();
+            
             for (int i = 0; i < 128; i++)
             {
                 NamesGrid.RowDefinitions.Add(new RowDefinition { Height = cellSize });
@@ -18,10 +24,70 @@ namespace Sequencer
                 NamesGrid.Add(element, 0, i);
                 NamesGrid.Add(text, 0, i);
             }
-            for (int i = 0; i < 5; i++)
+
+            //var trackGrid = CreateGrid(5, Signatures.FourFour);
+            //MeasureStack.Children.Clear();
+            //MeasureStack.Children.Add(trackGrid);
+
+            for (int i = 1; i < 3; i++)
             {
-                Grid measure = new Grid();
-                for (int k = 0; k < 16; k++)
+                var track = AddTrack((Instruments)i, (byte)i);
+                tracks.Add(track, CreateGrid(5, Signatures.FourFour));
+                TracksStack.Add(track);
+                //ChangeGrid(track);
+            }
+        }
+
+        private void ChangeGrid(VerticalStackLayout track)
+        {
+            MeasureStack.Children.Clear();
+            MeasureStack.Children.Add(tracks[track]);
+        }
+
+        private VerticalStackLayout AddTrack(Instruments i, byte channel)
+        {
+            VerticalStackLayout track = new VerticalStackLayout();
+
+            var tap = new TapGestureRecognizer();
+            tap.Tapped += (s, e) =>
+            {
+                var track = (VerticalStackLayout)s;
+
+                Debug.WriteLine($"tapped track");
+                ChangeGrid(track);
+            };
+            track.GestureRecognizers.Add(tap);
+
+            track.BackgroundColor = Colors.LightGray;
+            track.Margin = new Thickness(0, 0, 0, 5);
+
+            Label label = new Label();
+            label.Text = $"Track {channel}";
+            label.FontSize = 14;
+            Label instrument = new Label();
+            instrument.Text = i.ToString();
+            instrument.FontSize = 12;
+
+            HorizontalStackLayout buttons = new HorizontalStackLayout();
+            Button b1 = new Button { Text = "b1", Margin = new Thickness(0, 0, 5, 0) };
+            Button b2 = new Button { Text = "b2", Margin = new Thickness(0, 0, 5, 0) };
+            Button b3 = new Button { Text = "b3", Margin = new Thickness(0, 0, 5, 0) };
+            buttons.Add(b1);
+            buttons.Add(b2);
+            buttons.Add(b3);
+
+            track.Add(label);
+            track.Add(instrument);
+            track.Add(buttons);
+            return track;
+        }
+        private HorizontalStackLayout CreateGrid(ushort measureAmount, Signatures signature)
+        {
+            HorizontalStackLayout trackGrid = new HorizontalStackLayout();
+            for (ushort i = 0; i < measureAmount; i++)
+            {
+                Microsoft.Maui.Controls.Grid measure = new Microsoft.Maui.Controls.Grid();
+                for (byte k = 0; k < (byte)signature; k++)
                 {
                     measure.ColumnDefinitions.Add(new ColumnDefinition { Width = cellSize });
                 }
@@ -42,9 +108,10 @@ namespace Sequencer
                         measure.Add(element, k, j);
                     }
                 }
-                MeasureStack.Add(measure);
-                MeasureStack.Add(new BoxView { Color = Colors.Gray, VerticalOptions = LayoutOptions.Fill, WidthRequest = 1, Margin = new Thickness(1) });
+                trackGrid.Add(measure);
+                trackGrid.Add(new BoxView { Color = Colors.Gray, VerticalOptions = LayoutOptions.Fill, WidthRequest = 1, Margin = new Thickness(1) });
             }
+            return trackGrid;
         }
 
         private void GridScrolled(object sender, ScrolledEventArgs e)

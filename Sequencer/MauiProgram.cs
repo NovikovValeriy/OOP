@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using SequencerLibrary.Entities;
 
 namespace Sequencer
 {
@@ -18,6 +19,8 @@ namespace Sequencer
 #if DEBUG
     		builder.Logging.AddDebug();
 #endif
+
+            //builder.Services.AddSingleton<Composition>();
 
             return builder.Build();
         }
