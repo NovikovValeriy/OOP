@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mct:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+       xmlns:mct="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:Class="Sequencer.CreateCompositionPopupPage"
+           CanBeDismissedByTappingOutsideOfPopup="True"
+           Size="500,500"
+           Color="White"
+           >
+    <VerticalStackLayout>
+        <Label 
+            Text="Bpm(1-250)"
+            FontSize="12"
+            HorizontalOptions="Start" />
+        <Entry
+            x:Name="BpmEntry"
+            Text="120"
+            Keyboard="Numeric"
+            />
+        <Label
+            x:Name="IncorrectMessage"
+            Text=""
+            TextColor="Red"
+            FontSize="10"
+            />
+        <Label 
+            Text="Signature"
+            FontSize="12"
+            HorizontalOptions="Start" />
+        <Picker
+            x:Name="SignaturesPicker"
+            />
+
+
+        <Button
+            Text="Create"
+            Clicked="Button_Clicked"
+            />
+    </VerticalStackLayout>
+</mct:Popup>

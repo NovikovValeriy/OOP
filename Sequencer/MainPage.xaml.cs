@@ -1,4 +1,5 @@
-﻿using SequencerLibrary;
+﻿using CommunityToolkit.Maui.Views;
+using SequencerLibrary;
 using SequencerLibrary.Entities;
 using SequencerLibrary.Enumerators;
 using System.Diagnostics;
@@ -29,13 +30,13 @@ namespace Sequencer
             //MeasureStack.Children.Clear();
             //MeasureStack.Children.Add(trackGrid);
 
-            for (int i = 1; i < 3; i++)
-            {
-                var track = AddTrack((Instruments)i, (byte)i);
-                tracks.Add(track, CreateGrid(5, Signatures.FourFour));
-                TracksStack.Add(track);
-                //ChangeGrid(track);
-            }
+            //for (int i = 1; i < 3; i++)
+            //{
+            //    var track = AddTrack((Instruments)i, (byte)i);
+            //    tracks.Add(track, CreateGrid(5, Signatures.FourFour));
+            //    TracksStack.Add(track);
+            //    ChangeGrid(track);
+            //}
         }
 
         private void ChangeGrid(VerticalStackLayout track)
@@ -114,11 +115,25 @@ namespace Sequencer
             return trackGrid;
         }
 
+        private async void CreateComposition(object sender, EventArgs e)
+        {
+            var result = await this.ShowPopupAsync(new CreateCompositionPopupPage());
+            Debug.WriteLine(((CompositionCreateModel)result).Bpm.ToString() + ((CompositionCreateModel)result).Signature.ToString());
+        }
+        private void SaveComposition()
+        {
+
+        }
+        private void LoadComposition()
+        {
+
+        }
+
         private void GridScrolled(object sender, ScrolledEventArgs e)
         {
             ScrollNames.ScrollToAsync(ScrollGrid.ScrollX, ScrollGrid.ScrollY, false);
         }
-        
+
         private void NamesScrolled(object sender, ScrolledEventArgs e)
         {
             ScrollGrid.ScrollToAsync(ScrollNames.ScrollX, ScrollNames.ScrollY, false);

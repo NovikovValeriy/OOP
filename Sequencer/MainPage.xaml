@@ -5,8 +5,12 @@
 
     <ContentPage.MenuBarItems>
         <MenuBarItem
-            Text="File"
+            Text="Composition"
             >
+            <MenuFlyoutItem
+                Text="Create"
+                Clicked="CreateComposition"
+                />
             <MenuFlyoutItem
                 Text="Save"
                 />
