@@ -1,6 +1,7 @@
 ﻿using SequencerLibrary.Entities;
 using SequencerLibrary.Enumerators;
 using System.Text;
+using System.Threading.Channels;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -214,6 +215,146 @@ namespace WPFSequencer
             return outerStackPanel;
         }
 
+        private StackPanel CreateUIPercussionTrack()
+        {
+            StackPanel outerStackPanel = new StackPanel()
+            {
+                Orientation = Orientation.Vertical,
+                Background = Brushes.LightGreen,
+                Margin = new Thickness(10, 10, 10, 0),
+                Name =$"PercussionTrack"
+            };
+
+            StackPanel trackStackPanel = new StackPanel()
+            {
+                Orientation = Orientation.Horizontal
+            };
+
+            Label trackLabel = new Label()
+            {
+                Content = "Channel"
+            };
+
+            Label channelLabel = new Label()
+            {
+                Name = "ChannelLabel",
+                Content = "10"
+            };
+
+            trackStackPanel.Children.Add(trackLabel);
+            trackStackPanel.Children.Add(channelLabel);
+
+            StackPanel instrumentStackPanel = new StackPanel()
+            {
+                Orientation = Orientation.Horizontal
+            };
+
+            Label instrumentLabel = new Label()
+            {
+                Content = "Instrument:"
+            };
+
+            Label instrumentNameLabel = new Label()
+            {
+                Name = "InstrumentLabel",
+                Content = "Percussion"
+            };
+
+            instrumentStackPanel.Children.Add(instrumentLabel);
+            instrumentStackPanel.Children.Add(instrumentNameLabel);
+
+            StackPanel volumeStackPanel = new StackPanel()
+            {
+                Orientation = Orientation.Horizontal
+            };
+
+            Label volumeLabel = new Label()
+            {
+                Content = "Volume:"
+            };
+
+            Label volumeValueLabel = new Label()
+            {
+                Name = "VolumeLabel",
+                Content = "0",
+                MinWidth = 30
+            };
+
+            Slider volumeSlider = new Slider()
+            {
+                Width = 100,
+                Value = 127,
+                Minimum = 0,
+                Maximum = 127,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            volumeSlider.ValueChanged += (object s, RoutedPropertyChangedEventArgs<double> e) =>
+            {
+                var value = Convert.ToByte(volumeSlider.Value);
+                volumeValueLabel.Content = value.ToString();
+                var track = composition?.PercussionTrack;
+                track.Volume = value;
+            };
+            volumeValueLabel.Content = Convert.ToByte(volumeSlider.Value).ToString();
+
+            volumeStackPanel.Children.Add(volumeLabel);
+            volumeStackPanel.Children.Add(volumeValueLabel);
+            volumeStackPanel.Children.Add(volumeSlider);
+
+            StackPanel activeStackPanel = new StackPanel()
+            {
+                Orientation = Orientation.Horizontal
+            };
+
+            Label activeLabel = new Label()
+            {
+                Content = "Active:"
+            };
+
+            CheckBox activeCheckBox = new CheckBox()
+            {
+                VerticalAlignment = VerticalAlignment.Center,
+                IsChecked = true
+            };
+            activeCheckBox.Checked += (object s, RoutedEventArgs e) =>
+            {
+                var track = composition?.PercussionTrack;
+                track.IsActive = true;
+            };
+            activeCheckBox.Unchecked += (object s, RoutedEventArgs e) =>
+            {
+                var track = composition?.PercussionTrack;
+                track.IsActive = false;
+            };
+
+            StackPanel buttonsStackPanel = new StackPanel()
+            {
+                Orientation = Orientation.Horizontal
+            };
+            Button deleteButton = new Button()
+            {
+                Name = "DeleteTracksButton",
+                Content = "Delete track",
+                Margin = new Thickness(5, 0, 0, 5)
+            };
+            deleteButton.Click += (object s, RoutedEventArgs e) =>
+            {
+                composition?.removePercussionTrack();
+                TrackStack.Children.Remove(outerStackPanel);
+            };
+            buttonsStackPanel.Children.Add(deleteButton);
+
+            activeStackPanel.Children.Add(activeLabel);
+            activeStackPanel.Children.Add(activeCheckBox);
+
+            outerStackPanel.Children.Add(trackStackPanel);
+            outerStackPanel.Children.Add(instrumentStackPanel);
+            outerStackPanel.Children.Add(volumeStackPanel);
+            outerStackPanel.Children.Add(activeStackPanel);
+            outerStackPanel.Children.Add(buttonsStackPanel);
+
+            return outerStackPanel;
+        }
         private void ActiveCheckBox_Checked(object sender, RoutedEventArgs e)
         {
             throw new NotImplementedException();
@@ -231,6 +372,11 @@ namespace WPFSequencer
                     TrackStack.Children.Add(trackStack);
                 }
             }
+        }
+
+        private void MenuAddPercussionTrackItem_Click(object sender, RoutedEventArgs e)
+        {
+            if(composition != null && composition!.addPercussionTrack()) TrackStack.Children.Add(CreateUIPercussionTrack());
         }
     }
 }
