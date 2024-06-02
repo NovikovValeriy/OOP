@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:WPFSequencer"
         mc:Ignorable="d"
         Title="MIDI Sequencer" Height="700" Width="1200">
-    <Grid x:Name="BaseGrid">
+    <Grid x:Name="BaseGrid" Margin="0,0,0,10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="130*"/>
             <ColumnDefinition Width="300*"/>
@@ -177,16 +177,18 @@
             </ScrollViewer>
             <ScrollViewer
                 x:Name="MeasuresScroll"
-                MaxWidth="500"
+                MaxWidth="780"
                 VerticalScrollBarVisibility="Visible"
                 ScrollChanged="MeasuresScroll_ScrollChanged"
                 HorizontalScrollBarVisibility="Visible"
                 >
-                <Grid
-                    x:Name="MeasuresGrid"
+                <StackPanel
+                    HorizontalAlignment="Left"
+                    x:Name="MeasuresStack"
+                    Orientation="Horizontal"
                     >
-
-                </Grid>
+                    
+                </StackPanel>
 
             </ScrollViewer>
         </StackPanel>

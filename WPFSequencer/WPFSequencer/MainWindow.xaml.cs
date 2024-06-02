@@ -28,12 +28,38 @@ namespace WPFSequencer
             ChangeMenuItems(false);
 
             DrawNoteNames();
-            for (int i = 0; i < 128; i++)
+            //for (int i = 0; i < 128; i++)
+            //{
+            //    MeasuresGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(cellSize) });
+            //    for (int j = 0; j < 16 * 16; j++)
+            //    {
+            //        MeasuresGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(cellSize) });
+            //        Label label = new Label() { Background = Brushes.LightGray, BorderBrush = Brushes.Gray, BorderThickness = new Thickness(1) };
+            //        label.MouseDown += (o, e) =>
+            //        {
+            //            label.Background = Brushes.LightGreen;
+            //        };
+            //        System.Windows.Controls.Grid.SetRow(label, i);
+            //        System.Windows.Controls.Grid.SetColumn(label, j);
+            //        MeasuresGrid.Children.Add(label);
+            //    }
+            //}
+            for (int i = 0; i < 5; i++)
             {
-                MeasuresGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(cellSize) });
-                for (int j = 0; j < 16 * 16; j++)
+                MeasuresStack.Children.Add(MakeMeasure(Signatures.FourFour));
+            }
+        }
+
+        private System.Windows.Controls.Grid MakeMeasure(Signatures s)
+        {
+            System.Windows.Controls.Grid grid = new System.Windows.Controls.Grid();
+            grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(cellSize) });
+            for (int i = 1; i < 129; i++)
+            {
+                grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(cellSize) });
+                for (int j = 0; j < (byte)s; j++)
                 {
-                    MeasuresGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(cellSize) });
+                    grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(cellSize) });
                     Label label = new Label() { Background = Brushes.LightGray, BorderBrush = Brushes.Gray, BorderThickness = new Thickness(1) };
                     label.MouseDown += (o, e) =>
                     {
@@ -41,28 +67,38 @@ namespace WPFSequencer
                     };
                     System.Windows.Controls.Grid.SetRow(label, i);
                     System.Windows.Controls.Grid.SetColumn(label, j);
-                    MeasuresGrid.Children.Add(label);
+                    grid.Children.Add(label);
                 }
             }
-            //MeasuresGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(cellSize) });
-            //MeasuresGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(cellSize) });
-            //Button button = new Button();
-            //System.Windows.Controls.Grid.SetRow(button, 0);
-            //System.Windows.Controls.Grid.SetColumn(button, 0);
-            //MeasuresGrid.Children.Add(button);
-        }
+            
+            Label label1 = new Label() { Background = Brushes.LightGray, BorderBrush = Brushes.Gray, BorderThickness = new Thickness(1), Content = "Measure" };
+            System.Windows.Controls.Grid.SetRow(label1, 0);
+            System.Windows.Controls.Grid.SetColumn(label1, 0);
+            System.Windows.Controls.Grid.SetColumnSpan(label1, (byte)s);
+            grid.Children.Add(label1);
 
+            grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1) });
+            Label label2 = new Label() { Background = Brushes.Black };
+            System.Windows.Controls.Grid.SetColumn(label2, (byte)s);
+            System.Windows.Controls.Grid.SetRow(label2, 0);
+            System.Windows.Controls.Grid.SetRowSpan(label2, 129);  
+            grid.Children.Add(label2);
+
+            grid.Width = (byte)s * cellSize + 1;
+            return grid;
+        }
         private void DrawNoteNames()
         {
             List<NoteNames> lst = Enum.GetValues(typeof(NoteNames)).Cast<NoteNames>().ToList();
             NamesGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(cellSize + 10) });
-            for (int i = 0; i < 128; i++)
+            for (int i = 1; i < 129; i++)
             {
                 NamesGrid.RowDefinitions.Add(new RowDefinition() { Height= new GridLength(cellSize)});
-                Label label = new Label() { Background = Brushes.Gray, Content = lst[127 - i].ToString(), BorderBrush = Brushes.DarkGray, BorderThickness = new Thickness(1) };
+                Label label = new Label() { Background = Brushes.Gray, Content = lst[128 - i].ToString(), BorderBrush = Brushes.DarkGray, BorderThickness = new Thickness(1) };
                 System.Windows.Controls.Grid.SetRow(label, i);
                 NamesGrid.Children.Add(label);
             }
+            NamesGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(cellSize) });
             NamesGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(cellSize) });
         }
 
