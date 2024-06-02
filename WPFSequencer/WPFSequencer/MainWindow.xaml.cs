@@ -20,11 +20,50 @@ namespace WPFSequencer
     public partial class MainWindow : Window
     {
         Composition? composition;
+        int cellSize = 25;
         public MainWindow()
         {
             InitializeComponent();
             ResizeMode = ResizeMode.NoResize;
             ChangeMenuItems(false);
+
+            DrawNoteNames();
+            for (int i = 0; i < 128; i++)
+            {
+                MeasuresGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(cellSize) });
+                for (int j = 0; j < 16 * 16; j++)
+                {
+                    MeasuresGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(cellSize) });
+                    Label label = new Label() { Background = Brushes.LightGray, BorderBrush = Brushes.Gray, BorderThickness = new Thickness(1) };
+                    label.MouseDown += (o, e) =>
+                    {
+                        label.Background = Brushes.LightGreen;
+                    };
+                    System.Windows.Controls.Grid.SetRow(label, i);
+                    System.Windows.Controls.Grid.SetColumn(label, j);
+                    MeasuresGrid.Children.Add(label);
+                }
+            }
+            //MeasuresGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(cellSize) });
+            //MeasuresGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(cellSize) });
+            //Button button = new Button();
+            //System.Windows.Controls.Grid.SetRow(button, 0);
+            //System.Windows.Controls.Grid.SetColumn(button, 0);
+            //MeasuresGrid.Children.Add(button);
+        }
+
+        private void DrawNoteNames()
+        {
+            List<NoteNames> lst = Enum.GetValues(typeof(NoteNames)).Cast<NoteNames>().ToList();
+            NamesGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(cellSize + 10) });
+            for (int i = 0; i < 128; i++)
+            {
+                NamesGrid.RowDefinitions.Add(new RowDefinition() { Height= new GridLength(cellSize)});
+                Label label = new Label() { Background = Brushes.Gray, Content = lst[127 - i].ToString(), BorderBrush = Brushes.DarkGray, BorderThickness = new Thickness(1) };
+                System.Windows.Controls.Grid.SetRow(label, i);
+                NamesGrid.Children.Add(label);
+            }
+            NamesGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(cellSize) });
         }
 
         private void ChangeMenuItems(bool b)
@@ -65,6 +104,7 @@ namespace WPFSequencer
                 Margin = new Thickness(10,10,10,0),
                 Name = $"Track{ channel.ToString()}"
             };
+            outerStackPanel.MouseDown += OuterStackPanel_MouseDown;
 
             StackPanel trackStackPanel = new StackPanel()
             {
@@ -215,6 +255,15 @@ namespace WPFSequencer
             return outerStackPanel;
         }
 
+        private void OuterStackPanel_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            //testLabel.Content = composition?.Tracks[Convert.ToByte(((StackPanel)sender).Name.Remove(0, 5))].Volume;
+        }
+        private void Percussion_OuterStackPanel_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            //testLabel.Content = composition?.PercussionTrack?.Volume;
+        }
+
         private StackPanel CreateUIPercussionTrack()
         {
             StackPanel outerStackPanel = new StackPanel()
@@ -224,6 +273,7 @@ namespace WPFSequencer
                 Margin = new Thickness(10, 10, 10, 0),
                 Name =$"PercussionTrack"
             };
+            outerStackPanel.MouseDown += Percussion_OuterStackPanel_MouseDown;
 
             StackPanel trackStackPanel = new StackPanel()
             {
@@ -377,6 +427,16 @@ namespace WPFSequencer
         private void MenuAddPercussionTrackItem_Click(object sender, RoutedEventArgs e)
         {
             if(composition != null && composition!.addPercussionTrack()) TrackStack.Children.Add(CreateUIPercussionTrack());
+        }
+
+        private void NamesScroll_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            NamesScroll.ScrollToVerticalOffset(MeasuresScroll.VerticalOffset);
+        }
+
+        private void MeasuresScroll_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            NamesScroll.ScrollToVerticalOffset(MeasuresScroll.VerticalOffset);
         }
     }
 }

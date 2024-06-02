@@ -149,6 +149,48 @@
                 
             </StackPanel>
         </ScrollViewer>
+
+        <!--<Label
+            Name="testLabel"
+            Grid.Row="2"
+            Grid.Column="1"
+            >
+            
+        </Label>-->
+
+        <StackPanel
+            Orientation="Horizontal"
+            HorizontalAlignment="Stretch"
+            Grid.Row="2"
+            Grid.Column="1"
+            >
+            <ScrollViewer
+                VerticalScrollBarVisibility="Hidden"
+                ScrollChanged="NamesScroll_ScrollChanged"
+                x:Name="NamesScroll"
+                >
+                <Grid
+                    x:Name="NamesGrid"
+                    >
+                    
+                </Grid>
+            </ScrollViewer>
+            <ScrollViewer
+                x:Name="MeasuresScroll"
+                MaxWidth="500"
+                VerticalScrollBarVisibility="Visible"
+                ScrollChanged="MeasuresScroll_ScrollChanged"
+                HorizontalScrollBarVisibility="Visible"
+                >
+                <Grid
+                    x:Name="MeasuresGrid"
+                    >
+
+                </Grid>
+
+            </ScrollViewer>
+        </StackPanel>
+
     </Grid>
 </Window>
 
