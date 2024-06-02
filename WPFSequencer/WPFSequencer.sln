@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.34928.147
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WPFSequencer", "WPFSequencer\WPFSequencer.csproj", "{F602DB67-8864-43BF-8B9D-AF60765881D3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SequencerLibrary", "..\..\Library\SequencerLibrary\SequencerLibrary\SequencerLibrary.csproj", "{EB2B2B49-F79C-4ABA-B5D7-24CDA97A3822}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F602DB67-8864-43BF-8B9D-AF60765881D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F602DB67-8864-43BF-8B9D-AF60765881D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F602DB67-8864-43BF-8B9D-AF60765881D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F602DB67-8864-43BF-8B9D-AF60765881D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB2B2B49-F79C-4ABA-B5D7-24CDA97A3822}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB2B2B49-F79C-4ABA-B5D7-24CDA97A3822}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB2B2B49-F79C-4ABA-B5D7-24CDA97A3822}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB2B2B49-F79C-4ABA-B5D7-24CDA97A3822}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {373A28A8-1F62-41D9-8A84-A0791F349C0B}
+	EndGlobalSection
+EndGlobal
