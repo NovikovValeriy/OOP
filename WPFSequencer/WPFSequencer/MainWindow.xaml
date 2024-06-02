@@ -16,7 +16,8 @@
             <RowDefinition Height="2*"/>
             <RowDefinition Height="30*"/>
         </Grid.RowDefinitions>
-
+ 
+        
         <Menu
             Grid.Column="0"
             Grid.ColumnSpan="3"
@@ -136,17 +137,17 @@
             >
             
         </StackPanel>
-
-        <StackPanel
-            x:Name="TrackStack"
-            Orientation="Vertical"
+        <ScrollViewer
             Grid.Row="2"
-            Grid.Column="0"
-            >
-
-            
-            
-        </StackPanel>
+            Grid.Column="0">
+            <StackPanel
+                x:Name="TrackStack"
+                Orientation="Vertical"
+                >
+                
+                
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </Window>
 
@@ -179,5 +180,9 @@
         >
         <Label>Active:</Label>
         <CheckBox VerticalAlignment="Center" IsChecked="True"></CheckBox>
+    </StackPanel>
+    <StackPanel Orientation="Horizontal">
+        <Button x:Name="ChangeInstrumentButton" Margin="5,0,0,5">Change instrument</Button>
+        <Button x:Name="DeleteTrackButton" Margin="5,0,0,5">Delete track</Button>
     </StackPanel>
 </StackPanel>-->

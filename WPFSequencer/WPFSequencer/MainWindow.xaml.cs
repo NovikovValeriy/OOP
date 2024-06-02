@@ -61,7 +61,8 @@ namespace WPFSequencer
             {
                 Orientation = Orientation.Vertical,
                 Background = Brushes.LightGray,
-                Margin = new Thickness(10)
+                Margin = new Thickness(10,10,10,0),
+                Name = $"Track{ channel.ToString()}"
             };
 
             StackPanel trackStackPanel = new StackPanel()
@@ -71,7 +72,7 @@ namespace WPFSequencer
 
             Label trackLabel = new Label()
             {
-                Content = "Track:"
+                Content = "Channel:"
             };
 
             Label channelLabel = new Label()
@@ -115,7 +116,8 @@ namespace WPFSequencer
             Label volumeValueLabel = new Label()
             {
                 Name = "VolumeLabel",
-                Content = "0"
+                Content = "0",
+                MinWidth = 30
             };
 
             Slider volumeSlider = new Slider()
@@ -128,7 +130,10 @@ namespace WPFSequencer
             };
             volumeSlider.ValueChanged += (object s, RoutedPropertyChangedEventArgs<double> e) =>
             {
-                volumeValueLabel.Content = Convert.ToByte(volumeSlider.Value).ToString();
+                var value = Convert.ToByte(volumeSlider.Value);
+                volumeValueLabel.Content = value.ToString();
+                var track = composition?.Tracks[Convert.ToByte(outerStackPanel.Name.Remove(0, 5))];
+                track.Volume = value;
             };
             volumeValueLabel.Content = Convert.ToByte(volumeSlider.Value).ToString();
 
@@ -151,6 +156,51 @@ namespace WPFSequencer
                 VerticalAlignment = VerticalAlignment.Center,
                 IsChecked = true
             };
+            activeCheckBox.Checked += (object s, RoutedEventArgs e) =>
+            {
+                var track = composition?.Tracks[Convert.ToByte(outerStackPanel.Name.Remove(0, 5))];
+                track.IsActive = true;
+            };
+            activeCheckBox.Unchecked += (object s, RoutedEventArgs e) =>
+            {
+                var track = composition?.Tracks[Convert.ToByte(outerStackPanel.Name.Remove(0, 5))];
+                track.IsActive = false;
+            };
+
+            StackPanel buttonsStackPanel = new StackPanel()
+            {
+                Orientation = Orientation.Horizontal
+            };
+
+            Button changeButton = new Button()
+            {
+                Name = "ChangeInstrumentButton",
+                Content = "Change instrument",
+                Margin = new Thickness(5, 0, 0, 5)
+            };
+            changeButton.Click += (object s, RoutedEventArgs e) =>
+            {
+                TrackAdd trackAdd = new TrackAdd();
+                if(trackAdd.ShowDialog() == true)
+                {
+                    var track = composition?.Tracks[Convert.ToByte(outerStackPanel.Name.Remove(0, 5))];
+                    track?.changeInstrument(trackAdd.Instrument);
+                    instrumentNameLabel.Content = track?.InstrumentName;
+                }
+            };
+            Button deleteButton = new Button()
+            {
+                Name = "DeleteTracksButton",
+                Content = "Delete track",
+                Margin = new Thickness(5, 0, 0, 5)
+            };
+            deleteButton.Click += (object s, RoutedEventArgs e) =>
+            {
+                composition?.removeTrack(Convert.ToByte(outerStackPanel.Name.Remove(0, 5)));
+                TrackStack.Children.Remove(outerStackPanel);
+            };
+            buttonsStackPanel.Children.Add(changeButton);
+            buttonsStackPanel.Children.Add(deleteButton);
 
             activeStackPanel.Children.Add(activeLabel);
             activeStackPanel.Children.Add(activeCheckBox);
@@ -159,9 +209,16 @@ namespace WPFSequencer
             outerStackPanel.Children.Add(instrumentStackPanel);
             outerStackPanel.Children.Add(volumeStackPanel);
             outerStackPanel.Children.Add(activeStackPanel);
+            outerStackPanel.Children.Add(buttonsStackPanel);
 
             return outerStackPanel;
         }
+
+        private void ActiveCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
         private void MenuAddTrackItem_Click(object sender, RoutedEventArgs e)
         {
             TrackAdd trackAdd = new TrackAdd();
