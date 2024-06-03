@@ -22,7 +22,7 @@ namespace WPFSequencer
         Composition? composition;
         int cellSize = 25;
         Dictionary<byte, StackPanel> grids;
-        byte previousTrack = 0, selectedTrack = 0;
+        byte selectedTrack = 0;
         public MainWindow()
         {
             grids = new Dictionary<byte, StackPanel>();
@@ -260,8 +260,18 @@ namespace WPFSequencer
             };
             deleteButton.Click += (object s, RoutedEventArgs e) =>
             {
-                composition?.removeTrack(Convert.ToByte(outerStackPanel.Name.Remove(0, 5)));
+                byte channel = Convert.ToByte(outerStackPanel.Name.Remove(0, 5));
+                composition?.removeTrack(channel);
                 TrackStack.Children.Remove(outerStackPanel);
+                grids[channel] = null;
+                if(TrackStack.Children.Count == 0)
+                {
+                    MeasuresStack.Children.Clear();
+                    selectedTrack = 0;
+                    return;
+                }
+                selectedTrack = Convert.ToByte(((StackPanel)TrackStack.Children[0]).Name.Remove(0, 5));
+                TransferFromGridsToMeasureStack(selectedTrack);
             };
             buttonsStackPanel.Children.Add(changeButton);
             buttonsStackPanel.Children.Add(deleteButton);
@@ -284,11 +294,9 @@ namespace WPFSequencer
             if(channel == selectedTrack) return;
 
             TransferFromMeasureStackToGrids(selectedTrack);
-            TransferFromGridsToMeasureStack(previousTrack);
+            TransferFromGridsToMeasureStack(channel);
 
-            var temp = previousTrack;
-            previousTrack = selectedTrack;
-            selectedTrack = temp;
+            selectedTrack = channel;
         }
         private void Percussion_OuterStackPanel_MouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -457,14 +465,17 @@ namespace WPFSequencer
                         grids[(byte)channel].Children.Add(MakeMeasure(Signatures.FourFour));
                     }
                     
-                    previousTrack = selectedTrack;
-                    selectedTrack = (byte)channel;
 
-                    if (previousTrack != 0)
-                        TransferFromMeasureStackToGrids(previousTrack);
+                    if (selectedTrack != 0)
+                        TransferFromMeasureStackToGrids(selectedTrack);
+                    selectedTrack = (byte)channel;
                     TransferFromGridsToMeasureStack(selectedTrack);
                 }
             }
+        }
+        private void MenuAddPercussionTrackItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (composition != null && composition!.addPercussionTrack()) TrackStack.Children.Add(CreateUIPercussionTrack());
         }
 
         private void TransferFromMeasureStackToGrids(byte channel)
@@ -492,10 +503,6 @@ namespace WPFSequencer
 
 
 
-        private void MenuAddPercussionTrackItem_Click(object sender, RoutedEventArgs e)
-        {
-            if(composition != null && composition!.addPercussionTrack()) TrackStack.Children.Add(CreateUIPercussionTrack());
-        }
 
         private void NamesScroll_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
