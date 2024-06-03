@@ -3,12 +3,18 @@
   "WorkspaceRootPath": "C:\\Users\\dzmitry\\source\\repos\\4sem\\OOP\\WPFSequencer\\WPFSequencer\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{F602DB67-8864-43BF-8B9D-AF60765881D3}|WPFSequencer\\WPFSequencer.csproj|c:\\users\\dzmitry\\source\\repos\\4sem\\oop\\wpfsequencer\\wpfsequencer\\wpfsequencer\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
-      "RelativeMoniker": "D:0:0:{F602DB67-8864-43BF-8B9D-AF60765881D3}|WPFSequencer\\WPFSequencer.csproj|solutionrelative:wpfsequencer\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{F602DB67-8864-43BF-8B9D-AF60765881D3}|WPFSequencer\\WPFSequencer.csproj|c:\\users\\dzmitry\\source\\repos\\4sem\\oop\\wpfsequencer\\wpfsequencer\\wpfsequencer\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{F602DB67-8864-43BF-8B9D-AF60765881D3}|WPFSequencer\\WPFSequencer.csproj|solutionrelative:wpfsequencer\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EB2B2B49-F79C-4ABA-B5D7-24CDA97A3822}|..\\..\\Library\\SequencerLibrary\\SequencerLibrary\\SequencerLibrary.csproj|c:\\users\\dzmitry\\source\\repos\\4sem\\oop\\library\\sequencerlibrary\\sequencerlibrary\\entities\\grid.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EB2B2B49-F79C-4ABA-B5D7-24CDA97A3822}|..\\..\\Library\\SequencerLibrary\\SequencerLibrary\\SequencerLibrary.csproj|c:\\users\\dzmitry\\source\\repos\\4sem\\oop\\library\\sequencerlibrary\\sequencerlibrary\\entities\\track.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F602DB67-8864-43BF-8B9D-AF60765881D3}|WPFSequencer\\WPFSequencer.csproj|c:\\users\\dzmitry\\source\\repos\\4sem\\oop\\wpfsequencer\\wpfsequencer\\wpfsequencer\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{F602DB67-8864-43BF-8B9D-AF60765881D3}|WPFSequencer\\WPFSequencer.csproj|solutionrelative:wpfsequencer\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{F602DB67-8864-43BF-8B9D-AF60765881D3}|WPFSequencer\\WPFSequencer.csproj|c:\\users\\dzmitry\\source\\repos\\4sem\\oop\\wpfsequencer\\wpfsequencer\\wpfsequencer\\compositioncreate.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -16,9 +22,6 @@
     },
     {
       "AbsoluteMoniker": "D:0:0:{EB2B2B49-F79C-4ABA-B5D7-24CDA97A3822}|..\\..\\Library\\SequencerLibrary\\SequencerLibrary\\SequencerLibrary.csproj|c:\\users\\dzmitry\\source\\repos\\4sem\\oop\\library\\sequencerlibrary\\sequencerlibrary\\entities\\percussiontrack.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{EB2B2B49-F79C-4ABA-B5D7-24CDA97A3822}|..\\..\\Library\\SequencerLibrary\\SequencerLibrary\\SequencerLibrary.csproj|c:\\users\\dzmitry\\source\\repos\\4sem\\oop\\library\\sequencerlibrary\\sequencerlibrary\\entities\\track.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{EB2B2B49-F79C-4ABA-B5D7-24CDA97A3822}|..\\..\\Library\\SequencerLibrary\\SequencerLibrary\\SequencerLibrary.csproj|c:\\users\\dzmitry\\source\\repos\\4sem\\oop\\library\\sequencerlibrary\\sequencerlibrary\\entities\\composition.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
@@ -31,7 +34,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 7,
           "Children": [
             {
               "$type": "Bookmark",
@@ -39,7 +42,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 1,
+              "Title": "Grid.cs",
+              "DocumentMoniker": "C:\\Users\\dzmitry\\source\\repos\\4sem\\OOP\\Library\\SequencerLibrary\\SequencerLibrary\\Entities\\Grid.cs",
+              "RelativeDocumentMoniker": "..\\..\\Library\\SequencerLibrary\\SequencerLibrary\\Entities\\Grid.cs",
+              "ToolTip": "C:\\Users\\dzmitry\\source\\repos\\4sem\\OOP\\Library\\SequencerLibrary\\SequencerLibrary\\Entities\\Grid.cs",
+              "RelativeToolTip": "..\\..\\Library\\SequencerLibrary\\SequencerLibrary\\Entities\\Grid.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAP8AAAAjAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-06-03T12:36:25.312Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
               "Title": "CompositionCreate.xaml.cs",
               "DocumentMoniker": "C:\\Users\\dzmitry\\source\\repos\\4sem\\OOP\\WPFSequencer\\WPFSequencer\\WPFSequencer\\CompositionCreate.xaml.cs",
               "RelativeDocumentMoniker": "WPFSequencer\\CompositionCreate.xaml.cs",
@@ -52,7 +68,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 5,
               "Title": "PercussionTrack.cs",
               "DocumentMoniker": "C:\\Users\\dzmitry\\source\\repos\\4sem\\OOP\\Library\\SequencerLibrary\\SequencerLibrary\\Entities\\PercussionTrack.cs",
               "RelativeDocumentMoniker": "..\\..\\Library\\SequencerLibrary\\SequencerLibrary\\Entities\\PercussionTrack.cs",
@@ -65,7 +81,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "Composition.cs",
               "DocumentMoniker": "C:\\Users\\dzmitry\\source\\repos\\4sem\\OOP\\Library\\SequencerLibrary\\SequencerLibrary\\Entities\\Composition.cs",
               "RelativeDocumentMoniker": "..\\..\\Library\\SequencerLibrary\\SequencerLibrary\\Entities\\Composition.cs",
@@ -78,20 +94,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 2,
               "Title": "Track.cs",
               "DocumentMoniker": "C:\\Users\\dzmitry\\source\\repos\\4sem\\OOP\\Library\\SequencerLibrary\\SequencerLibrary\\Entities\\Track.cs",
               "RelativeDocumentMoniker": "..\\..\\Library\\SequencerLibrary\\SequencerLibrary\\Entities\\Track.cs",
               "ToolTip": "C:\\Users\\dzmitry\\source\\repos\\4sem\\OOP\\Library\\SequencerLibrary\\SequencerLibrary\\Entities\\Track.cs",
               "RelativeToolTip": "..\\..\\Library\\SequencerLibrary\\SequencerLibrary\\Entities\\Track.cs",
-              "ViewState": "AQIAABIAAAAAAAAAAAAjwCQAAABPAAAA",
+              "ViewState": "AQIAAEUAAAAAAAAAAAAkwE0AAAAvAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-06-02T11:52:22.844Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 3,
               "Title": "MainWindow.xaml",
               "DocumentMoniker": "C:\\Users\\dzmitry\\source\\repos\\4sem\\OOP\\WPFSequencer\\WPFSequencer\\WPFSequencer\\MainWindow.xaml",
               "RelativeDocumentMoniker": "WPFSequencer\\MainWindow.xaml",
@@ -103,13 +119,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "MainWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\dzmitry\\source\\repos\\4sem\\OOP\\WPFSequencer\\WPFSequencer\\WPFSequencer\\MainWindow.xaml.cs",
               "RelativeDocumentMoniker": "WPFSequencer\\MainWindow.xaml.cs",
               "ToolTip": "C:\\Users\\dzmitry\\source\\repos\\4sem\\OOP\\WPFSequencer\\WPFSequencer\\WPFSequencer\\MainWindow.xaml.cs",
               "RelativeToolTip": "WPFSequencer\\MainWindow.xaml.cs",
-              "ViewState": "AQIAADwAAAAAAAAAAAAYwE8AAABYAAAA",
+              "ViewState": "AQIAACYBAAAAAAAAAAAAwNABAABBAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-06-02T11:15:07.814Z",
               "EditorCaption": ""

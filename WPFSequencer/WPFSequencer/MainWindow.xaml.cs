@@ -21,33 +21,20 @@ namespace WPFSequencer
     {
         Composition? composition;
         int cellSize = 25;
+        Dictionary<byte, StackPanel> grids;
+        byte previousTrack = 0, selectedTrack = 0;
         public MainWindow()
         {
+            grids = new Dictionary<byte, StackPanel>();
             InitializeComponent();
             ResizeMode = ResizeMode.NoResize;
             ChangeMenuItems(false);
 
             DrawNoteNames();
-            //for (int i = 0; i < 128; i++)
+            //for (int i = 0; i < 64; i++)
             //{
-            //    MeasuresGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(cellSize) });
-            //    for (int j = 0; j < 16 * 16; j++)
-            //    {
-            //        MeasuresGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(cellSize) });
-            //        Label label = new Label() { Background = Brushes.LightGray, BorderBrush = Brushes.Gray, BorderThickness = new Thickness(1) };
-            //        label.MouseDown += (o, e) =>
-            //        {
-            //            label.Background = Brushes.LightGreen;
-            //        };
-            //        System.Windows.Controls.Grid.SetRow(label, i);
-            //        System.Windows.Controls.Grid.SetColumn(label, j);
-            //        MeasuresGrid.Children.Add(label);
-            //    }
+            //    MeasuresStack.Children.Add(MakeMeasure(Signatures.FourFour));
             //}
-            for (int i = 0; i < 5; i++)
-            {
-                MeasuresStack.Children.Add(MakeMeasure(Signatures.FourFour));
-            }
         }
 
         private System.Windows.Controls.Grid MakeMeasure(Signatures s)
@@ -293,7 +280,15 @@ namespace WPFSequencer
 
         private void OuterStackPanel_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            //testLabel.Content = composition?.Tracks[Convert.ToByte(((StackPanel)sender).Name.Remove(0, 5))].Volume;
+            var channel = Convert.ToByte(((StackPanel)sender).Name.Remove(0, 5));
+            if(channel == selectedTrack) return;
+
+            TransferFromMeasureStackToGrids(selectedTrack);
+            TransferFromGridsToMeasureStack(previousTrack);
+
+            var temp = previousTrack;
+            previousTrack = selectedTrack;
+            selectedTrack = temp;
         }
         private void Percussion_OuterStackPanel_MouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -456,9 +451,46 @@ namespace WPFSequencer
                 {
                     var trackStack = CreateUITrack(trackAdd.Instrument, channel);
                     TrackStack.Children.Add(trackStack);
+                    grids[(byte)channel] = new StackPanel();
+                    for (int i = 0; i < 5; i++)
+                    {
+                        grids[(byte)channel].Children.Add(MakeMeasure(Signatures.FourFour));
+                    }
+                    
+                    previousTrack = selectedTrack;
+                    selectedTrack = (byte)channel;
+
+                    if (previousTrack != 0)
+                        TransferFromMeasureStackToGrids(previousTrack);
+                    TransferFromGridsToMeasureStack(selectedTrack);
                 }
             }
         }
+
+        private void TransferFromMeasureStackToGrids(byte channel)
+        {
+            grids[channel].Children.Clear();
+            int amount = MeasuresStack.Children.Count;
+            for (int i = 0; i < amount; i++)
+            {
+                var item = MeasuresStack.Children[0];
+                MeasuresStack.Children.Remove(item);
+                grids[channel].Children.Add(item);
+            }
+        }
+        private void TransferFromGridsToMeasureStack(byte channel)
+        {
+            MeasuresStack.Children.Clear();
+            int amount = grids[channel].Children.Count;
+            for (int i = 0; i < amount; i++)
+            {
+                var item = grids[channel].Children[0];
+                grids[channel].Children.Remove(item);
+                MeasuresStack.Children.Add(item);
+            }
+        }
+
+
 
         private void MenuAddPercussionTrackItem_Click(object sender, RoutedEventArgs e)
         {
