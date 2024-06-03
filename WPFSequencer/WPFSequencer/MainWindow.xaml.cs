@@ -307,7 +307,6 @@ namespace WPFSequencer
             outerStackPanel.Children.Add(volumeStackPanel);
             outerStackPanel.Children.Add(activeStackPanel);
             outerStackPanel.Children.Add(buttonsStackPanel);
-
             return outerStackPanel;
         }
 
@@ -316,7 +315,7 @@ namespace WPFSequencer
             StackPanel outerStackPanel = new StackPanel()
             {
                 Orientation = Orientation.Vertical,
-                Background = Brushes.LightGreen,
+                Background = Brushes.LightGray,
                 Margin = new Thickness(10, 10, 10, 0),
                 Name = $"Track10"
             };
@@ -463,7 +462,6 @@ namespace WPFSequencer
             outerStackPanel.Children.Add(volumeStackPanel);
             outerStackPanel.Children.Add(activeStackPanel);
             outerStackPanel.Children.Add(buttonsStackPanel);
-
             return outerStackPanel;
         }
 
@@ -557,6 +555,12 @@ namespace WPFSequencer
             }
             if (track.Channel == 10) DrawPercussionNames();
             else DrawNoteNames();
+
+            foreach (StackPanel child in TrackStack.Children)
+            {
+                if(Convert.ToByte(child.Name.Remove(0, 5)) == track.Channel) child.Background = Brushes.LightGreen;
+                else child.Background = Brushes.LightGray;
+            }
         }
 
 
