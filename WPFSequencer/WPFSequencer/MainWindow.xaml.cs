@@ -22,7 +22,6 @@ namespace WPFSequencer
         Composition? composition;
         int cellSize = 25;
         Dictionary<byte, StackPanel> grids;
-        //byte selectedTrack = 0;
         Track selectedTrack;
         public MainWindow()
         {
@@ -31,14 +30,14 @@ namespace WPFSequencer
             ResizeMode = ResizeMode.NoResize;
             ChangeMenuItems(false);
 
-            DrawNoteNames();
+            //DrawNoteNames();
         }
 
-        private System.Windows.Controls.Grid MakeMeasure(Signatures s)
+        private System.Windows.Controls.Grid MakeMeasure(Signatures s, byte bound)
         {
             System.Windows.Controls.Grid grid = new System.Windows.Controls.Grid();
             grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(cellSize) });
-            for (int i = 1; i < 129; i++)
+            for (int i = 1; i < bound; i++)
             {
                 grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(cellSize) });
                 for (int j = 0; j < (byte)s; j++)
@@ -73,9 +72,11 @@ namespace WPFSequencer
         }
         private void DrawNoteNames()
         {
-            NamesGrid.Children.Clear();
+            MeasuresScroll.Width = 775;
+            NamesGrid.RowDefinitions.Clear();
+            NamesGrid.ColumnDefinitions.Clear();
             List<NoteNames> lst = Enum.GetValues(typeof(NoteNames)).Cast<NoteNames>().ToList();
-            NamesGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(cellSize + 10) });
+            NamesGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(cellSize + 15) });
             for (int i = 1; i < 129; i++)
             {
                 NamesGrid.RowDefinitions.Add(new RowDefinition() { Height= new GridLength(cellSize)});
@@ -88,7 +89,20 @@ namespace WPFSequencer
         }
         private void DrawPercussionNames()
         {
-
+            MeasuresScroll.Width = 705;
+            NamesGrid.RowDefinitions.Clear();
+            NamesGrid.ColumnDefinitions.Clear();
+            List<PercussionNames> lst = Enum.GetValues(typeof(PercussionNames)).Cast<PercussionNames>().ToList();
+            NamesGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(110) });
+            for (int i = 1; i < 48; i++)
+            {
+                NamesGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(cellSize) });
+                Label label = new Label() { Background = Brushes.Gray, Content = lst[47 - i].ToString(), BorderBrush = Brushes.DarkGray, BorderThickness = new Thickness(1) };
+                System.Windows.Controls.Grid.SetRow(label, i);
+                NamesGrid.Children.Add(label);
+            }
+            NamesGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(cellSize) });
+            NamesGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(cellSize) });
         }
 
         private void ChangeMenuItems(bool b)
@@ -469,16 +483,6 @@ namespace WPFSequencer
 
             selectedTrack = track;
         }
-        //private void Percussion_OuterStackPanel_MouseDown(object sender, MouseButtonEventArgs e)
-        //{
-        //    Track track = composition!.PercussionTrack!;
-        //    if (track == selectedTrack) return;
-
-        //    TransferFromMeasureStackToGrids(selectedTrack);
-        //    TransferFromGridsToMeasureStack(track);
-
-        //    selectedTrack = track;
-        //}
 
         
         private void ActiveCheckBox_Checked(object sender, RoutedEventArgs e)
@@ -500,7 +504,7 @@ namespace WPFSequencer
                     grids[(byte)channel] = new StackPanel();
                     for (int i = 0; i < 5; i++)
                     {
-                        grids[(byte)channel].Children.Add(MakeMeasure(composition.Signature));
+                        grids[(byte)channel].Children.Add(MakeMeasure(composition.Signature, 129));
                     }
                     
 
@@ -520,7 +524,7 @@ namespace WPFSequencer
             grids[10] = new StackPanel();
             for (int i = 0; i < 5; i++)
             {
-                grids[10].Children.Add(MakeMeasure(composition.Signature));
+                grids[10].Children.Add(MakeMeasure(composition.Signature, 48));
             }
 
 
@@ -551,11 +555,9 @@ namespace WPFSequencer
                 grids[(byte)track.Channel].Children.Remove(item);
                 MeasuresStack.Children.Add(item);
             }
-            //if (track.Channel == 10) DrawPercussionNames();
-            //else DrawNoteNames();
+            if (track.Channel == 10) DrawPercussionNames();
+            else DrawNoteNames();
         }
-
-
 
 
         private void NamesScroll_ScrollChanged(object sender, ScrollChangedEventArgs e)
