@@ -214,11 +214,25 @@ namespace WPFSequencer
                 SignatureLabel.Content = composition.Signature;
                 BpmLabel.Content = composition.Bpm;
             }
-
-            
+        }
+        private void Load_Composition_Click(object sender, RoutedEventArgs e)
+        {
+            composition?.midiDispose();
+            composition = new Composition();
+            composition?.loadFromBinary("C:\\Users\\dzmitry\\source\\repos\\4sem\\OOP\\TestingProject\\file.bin");
+            ChangeMenuItems(true);
+            PauseButton.IsEnabled = false;
+            StopButton.IsEnabled = false;
+            SignatureLabel.Content = composition?.Signature;
+            BpmLabel.Content = composition.Bpm;
+            foreach (var item in composition.Tracks.Values)
+            {
+                CreateTrack((byte)item.Channel, item.InstrumentName, item.Volume, item.IsActive);
+            }
+            if (composition.PercussionTrack != null) CreatePercussionTrack(composition.PercussionTrack.Volume, composition.PercussionTrack.IsActive);
         }
 
-        private StackPanel CreateUITrack(Instruments instrument, byte? channel)
+        private StackPanel CreateUITrack(Instruments instrument, byte? channel, byte volume = 127, bool isAct = true)
         {
             StackPanel outerStackPanel = new StackPanel()
             {
@@ -287,7 +301,7 @@ namespace WPFSequencer
             Slider volumeSlider = new Slider()
             {
                 Width = 100,
-                Value = 127,
+                Value = volume,
                 Minimum = 0,
                 Maximum = 127,
                 VerticalAlignment = VerticalAlignment.Center
@@ -318,7 +332,7 @@ namespace WPFSequencer
             CheckBox activeCheckBox = new CheckBox()
             {
                 VerticalAlignment = VerticalAlignment.Center,
-                IsChecked = true
+                IsChecked = isAct
             };
             activeCheckBox.Checked += (object s, RoutedEventArgs e) =>
             {
@@ -394,7 +408,7 @@ namespace WPFSequencer
             return outerStackPanel;
         }
 
-        private StackPanel CreateUIPercussionTrack()
+        private StackPanel CreateUIPercussionTrack(byte volume = 127, bool isAct = true)
         {
             StackPanel outerStackPanel = new StackPanel()
             {
@@ -463,7 +477,7 @@ namespace WPFSequencer
             Slider volumeSlider = new Slider()
             {
                 Width = 100,
-                Value = 127,
+                Value = volume,
                 Minimum = 0,
                 Maximum = 127,
                 VerticalAlignment = VerticalAlignment.Center
@@ -494,7 +508,7 @@ namespace WPFSequencer
             CheckBox activeCheckBox = new CheckBox()
             {
                 VerticalAlignment = VerticalAlignment.Center,
-                IsChecked = true
+                IsChecked = isAct
             };
             activeCheckBox.Checked += (object s, RoutedEventArgs e) =>
             {
@@ -566,78 +580,66 @@ namespace WPFSequencer
             selectedTrack = track;
         }
 
-        
-        private void ActiveCheckBox_Checked(object sender, RoutedEventArgs e)
+        private void CreateTrack(byte channel, Instruments instrument, byte volume = 127, bool isAct = true)
         {
-            throw new NotImplementedException();
-        }
-
-        private void MenuAddTrackItem_Click(object sender, RoutedEventArgs e)
-        {
-            TrackAdd trackAdd = new TrackAdd();
-            if(trackAdd.ShowDialog() == true)
+            Track track = composition?.Tracks[(byte)channel!]!;
+            track.AddedMeasuresEvent += (o, e) =>
             {
-                byte? channel = composition?.addTrack(trackAdd.Instrument);
-                Track track = composition?.Tracks[(byte)channel!]!;
-                track.AddedMeasuresEvent += (o, e) =>
+                if (grids[(byte)track.Channel].Children.Count == 0)
                 {
-                    if (grids[(byte)track.Channel].Children.Count == 0)
-                    {
-                        TransferFromMeasureStackToGrids(track);
-                    }
-                    UpdateGrid(track);
-                    TransferFromGridsToMeasureStack(track);
-                };
-                track.TrackGrid.AddedNoteEvent += (o, e) =>
-                {
-                    int row = Math.Abs((int)e.NoteName - 128);
-                    int col = e.StartCol;
-                    Label note = (Label)(
-                        (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
-                    )
-                    .Children
-                    .Cast<UIElement>()
-                    .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == col);
-                    note.Background = singleNoteColor;
-                };
-                track.TrackGrid.DeletedNoteEvent += (o, e) =>   //Реализовать удаление увеличенных нот
-                {
-                    int row = Math.Abs((int)e.NoteName - 128);
-                    int col = e.StartCol;
-                    Label note = (Label)(
-                        (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
-                    )
-                    .Children
-                    .Cast<UIElement>()
-                    .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == col);
-                    note.Background = emptyNoteColor;
-                };
-                track.TrackGrid.IncreasedNoteEvent += (o, e) =>
-                {
-
-                };
-                track.TrackGrid.DecreasedNoteEvent += (o, e) =>
-                {
-
-                };
-                if (channel != null && channel < 17)
-                {
-                    var trackStack = CreateUITrack(trackAdd.Instrument, channel);
-                    TrackStack.Children.Add(trackStack);
-                    grids[(byte)channel] = new StackPanel();
-                    UpdateGrid(track);
-                    
-
-                    if (selectedTrack != null)
-                        TransferFromMeasureStackToGrids(selectedTrack);
-                    selectedTrack = track;
-                    TransferFromGridsToMeasureStack(selectedTrack);
+                    TransferFromMeasureStackToGrids(track);
                 }
+                UpdateGrid(track);
+                TransferFromGridsToMeasureStack(track);
+            };
+            track.TrackGrid.AddedNoteEvent += (o, e) =>
+            {
+                int row = Math.Abs((int)e.NoteName - 128);
+                int col = e.StartCol;
+                Label note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == col);
+                note.Background = singleNoteColor;
+            };
+            track.TrackGrid.DeletedNoteEvent += (o, e) =>   //Реализовать удаление увеличенных нот
+            {
+                int row = Math.Abs((int)e.NoteName - 128);
+                int col = e.StartCol;
+                Label note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == col);
+                note.Background = emptyNoteColor;
+            };
+            track.TrackGrid.IncreasedNoteEvent += (o, e) =>
+            {
+
+            };
+            track.TrackGrid.DecreasedNoteEvent += (o, e) =>
+            {
+
+            };
+            if (channel != null && channel < 17)
+            {
+                var trackStack = CreateUITrack(instrument, channel, volume, isAct);
+                TrackStack.Children.Add(trackStack);
+                grids[(byte)channel] = new StackPanel();
+                UpdateGrid(track);
+
+
+                if (selectedTrack != null)
+                    TransferFromMeasureStackToGrids(selectedTrack);
+                selectedTrack = track;
+                TransferFromGridsToMeasureStack(selectedTrack);
             }
         }
-        private void MenuAddPercussionTrackItem_Click(object sender, RoutedEventArgs e)
+        private void CreatePercussionTrack(byte volume = 127, bool isAct = true)
         {
-            if(!composition!.addPercussionTrack()) return;
             Track track = composition.PercussionTrack!;
             track.AddedMeasuresEvent += (o, e) =>
             {
@@ -659,7 +661,7 @@ namespace WPFSequencer
                 .Cast<UIElement>()
                 .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == col);
                 note.Background = singleNoteColor;
-                if(track.TrackGrid.MeasureAmount > MeasuresStack.Children.Count)
+                if (track.TrackGrid.MeasureAmount > MeasuresStack.Children.Count)
                 {
                     if (grids[(byte)track.Channel].Children.Count == 0)
                     {
@@ -689,7 +691,7 @@ namespace WPFSequencer
             {
 
             };
-            var trackStack = CreateUIPercussionTrack();
+            var trackStack = CreateUIPercussionTrack(volume, isAct);
             TrackStack.Children.Add(trackStack);
             grids[10] = new StackPanel();
             UpdatePercussionGrid();
@@ -699,6 +701,20 @@ namespace WPFSequencer
                 TransferFromMeasureStackToGrids(selectedTrack);
             selectedTrack = track;
             TransferFromGridsToMeasureStack(selectedTrack);
+        }
+        private void MenuAddTrackItem_Click(object sender, RoutedEventArgs e)
+        {
+            TrackAdd trackAdd = new TrackAdd();
+            if(trackAdd.ShowDialog() == true)
+            {
+                byte? channel = composition?.addTrack(trackAdd.Instrument);
+                CreateTrack((byte)channel, trackAdd.Instrument);
+            }
+        }
+        private void MenuAddPercussionTrackItem_Click(object sender, RoutedEventArgs e)
+        {
+            if(!composition!.addPercussionTrack()) return;
+            CreatePercussionTrack();
         }
 
         private void UpdateGrid(Track track)
