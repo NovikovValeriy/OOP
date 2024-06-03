@@ -1,5 +1,6 @@
 ﻿using SequencerLibrary.Entities;
 using SequencerLibrary.Enumerators;
+using System;
 using System.Text;
 using System.Threading.Channels;
 using System.Windows;
@@ -29,24 +30,41 @@ namespace WPFSequencer
             InitializeComponent();
             ResizeMode = ResizeMode.NoResize;
             ChangeMenuItems(false);
-
-            //DrawNoteNames();
         }
 
-        private System.Windows.Controls.Grid MakeMeasure(Signatures s, byte bound)
+        private System.Windows.Controls.Grid MakeMeasure(Signatures s, ushort index, Track track)
         {
             System.Windows.Controls.Grid grid = new System.Windows.Controls.Grid();
             grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(cellSize) });
-            for (int i = 1; i < bound; i++)
+            for (int i = 1; i < 129; i++)
             {
                 grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(cellSize) });
-                for (int j = 0; j < (byte)s; j++)
+                for (byte j = 0; j < (byte)s; j++)
                 {
                     grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(cellSize) });
                     Label label = new Label() { Background = Brushes.LightGray, BorderBrush = Brushes.Gray, BorderThickness = new Thickness(1) };
                     label.MouseDown += (o, e) =>
                     {
-                        label.Background = Brushes.LightGreen;
+                        byte row = (byte)System.Windows.Controls.Grid.GetRow((Label)o);
+                        row -= 1;
+                        byte col = (byte)System.Windows.Controls.Grid.GetColumn((Label)o);
+                        if ((bool)AddRadioButton.IsChecked!)
+                        {
+                            composition?.addNote(track, (NoteNames)(127 - row), index, col);
+                        }
+                        else if ((bool)DeleteRadioButton.IsChecked!)
+                        {
+                            composition?.deleteNote(track, (NoteNames)(127 - row), index, col);
+                        }
+                        else if ((bool)IncreaseRadioButton.IsChecked!)
+                        {
+                            composition?.increaseDuration(track, (NoteNames)(127 - row), index, col);
+                        }
+                        else
+                        {
+                            composition?.decreaseDuration(track, (NoteNames)(127 - row), index, col);
+                        }
+                        
                     };
                     System.Windows.Controls.Grid.SetRow(label, i);
                     System.Windows.Controls.Grid.SetColumn(label, j);
@@ -54,7 +72,7 @@ namespace WPFSequencer
                 }
             }
             
-            Label label1 = new Label() { Background = Brushes.LightGray, BorderBrush = Brushes.Gray, BorderThickness = new Thickness(1), Content = "Measure" };
+            Label label1 = new Label() { Background = Brushes.LightGray, BorderBrush = Brushes.Gray, BorderThickness = new Thickness(1), Content = $"Measure {index + 1}" };
             System.Windows.Controls.Grid.SetRow(label1, 0);
             System.Windows.Controls.Grid.SetColumn(label1, 0);
             System.Windows.Controls.Grid.SetColumnSpan(label1, (byte)s);
@@ -65,6 +83,62 @@ namespace WPFSequencer
             System.Windows.Controls.Grid.SetColumn(label2, (byte)s);
             System.Windows.Controls.Grid.SetRow(label2, 0);
             System.Windows.Controls.Grid.SetRowSpan(label2, 129);  
+            grid.Children.Add(label2);
+
+            grid.Width = (byte)s * cellSize + 1;
+            return grid;
+        }
+
+        private System.Windows.Controls.Grid MakePercussionMeasure(Signatures s, ushort index)
+        {
+            System.Windows.Controls.Grid grid = new System.Windows.Controls.Grid();
+            grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(cellSize) });
+            for (int i = 1; i < 48; i++)
+            {
+                grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(cellSize) });
+                for (byte j = 0; j < (byte)s; j++)
+                {
+                    grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(cellSize) });
+                    Label label = new Label() { Background = Brushes.LightGray, BorderBrush = Brushes.Gray, BorderThickness = new Thickness(1) };
+                    label.MouseDown += (o, e) =>
+                    {
+                        int row = Math.Abs(System.Windows.Controls.Grid.GetRow((Label)o) - 82);
+                        byte col = (byte)System.Windows.Controls.Grid.GetColumn((Label)o);
+                        if ((bool)AddRadioButton.IsChecked!)
+                        {
+                            composition?.addNote(composition!.PercussionTrack!, (PercussionNames)row, index, col);
+                        }
+                        else if ((bool)DeleteRadioButton.IsChecked!)
+                        {
+                            composition?.deleteNote(composition!.PercussionTrack!, (PercussionNames)row, index, col);
+                        }
+                        else if ((bool)IncreaseRadioButton.IsChecked!)
+                        {
+                            composition?.increaseDuration(composition!.PercussionTrack!, (PercussionNames)row, index, col);
+                        }
+                        else
+                        {
+                            composition?.decreaseDuration(composition!.PercussionTrack!, (PercussionNames)row, index, col);
+                        }
+
+                    };
+                    System.Windows.Controls.Grid.SetRow(label, i);
+                    System.Windows.Controls.Grid.SetColumn(label, j);
+                    grid.Children.Add(label);
+                }
+            }
+
+            Label label1 = new Label() { Background = Brushes.LightGray, BorderBrush = Brushes.Gray, BorderThickness = new Thickness(1), Content = $"Measure {index + 1}" };
+            System.Windows.Controls.Grid.SetRow(label1, 0);
+            System.Windows.Controls.Grid.SetColumn(label1, 0);
+            System.Windows.Controls.Grid.SetColumnSpan(label1, (byte)s);
+            grid.Children.Add(label1);
+
+            grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1) });
+            Label label2 = new Label() { Background = Brushes.Black };
+            System.Windows.Controls.Grid.SetColumn(label2, (byte)s);
+            System.Windows.Controls.Grid.SetRow(label2, 0);
+            System.Windows.Controls.Grid.SetRowSpan(label2, 129);
             grid.Children.Add(label2);
 
             grid.Width = (byte)s * cellSize + 1;
@@ -121,12 +195,19 @@ namespace WPFSequencer
         private void Create_New_Composition_Click(object sender, RoutedEventArgs e)
         {
             CompositionCreate compositionCreate = new CompositionCreate();
-
             if(compositionCreate.ShowDialog() == true)
             {
+                //MeasuresStack.Children.Clear();
+                //TrackStack.Children.Clear();
+                //for (byte i = 1; i < 17; i++)
+                //{
+                //    grids[i].Children.Clear();
+                //}
                 composition?.midiDispose();
                 composition = new Composition(compositionCreate.Signature, compositionCreate.Bpm);
                 ChangeMenuItems(true);
+                PauseButton.IsEnabled = false;
+                StopButton.IsEnabled = false;
                 SignatureLabel.Content = composition.Signature;
                 BpmLabel.Content = composition.Bpm;
             }
@@ -495,6 +576,42 @@ namespace WPFSequencer
             {
                 byte? channel = composition?.addTrack(trackAdd.Instrument);
                 Track track = composition?.Tracks[(byte)channel!]!;
+                track.TrackGrid.AddedMeasuresEvent += (o, e) =>
+                {
+                    
+                };
+                track.TrackGrid.AddedNoteEvent += (o, e) =>
+                {
+                    int row = Math.Abs((int)e.NoteName - 128);
+                    int col = e.StartCol;
+                    Label note = (Label)(
+                        (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
+                    )
+                    .Children
+                    .Cast<UIElement>()
+                    .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == col);
+                    note.Background = Brushes.Blue;
+                };
+                track.TrackGrid.DeletedNoteEvent += (o, e) =>
+                {
+                    int row = Math.Abs((int)e.NoteName - 128);
+                    int col = e.StartCol;
+                    Label note = (Label)(
+                        (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
+                    )
+                    .Children
+                    .Cast<UIElement>()
+                    .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == col);
+                    note.Background = Brushes.LightGray;
+                };
+                track.TrackGrid.IncreasedNoteEvent += (o, e) =>
+                {
+
+                };
+                track.TrackGrid.DecreasedNoteEvent += (o, e) =>
+                {
+
+                };
                 if (channel != null && channel < 17)
                 {
                     var trackStack = CreateUITrack(trackAdd.Instrument, channel);
@@ -502,7 +619,7 @@ namespace WPFSequencer
                     grids[(byte)channel] = new StackPanel();
                     for (int i = 0; i < 5; i++)
                     {
-                        grids[(byte)channel].Children.Add(MakeMeasure(composition.Signature, 129));
+                        grids[(byte)channel].Children.Add(MakeMeasure(composition.Signature, (ushort)i, track));
                     }
                     
 
@@ -517,12 +634,48 @@ namespace WPFSequencer
         {
             if(!composition!.addPercussionTrack()) return;
             Track track = composition.PercussionTrack!;
+            track.TrackGrid.AddedMeasuresEvent += (o, e) =>
+            {
+
+            };
+            track.TrackGrid.AddedNoteEvent += (o, e) =>
+            {
+                int row = Math.Abs((int)e.NoteName - 82);
+                int col = e.StartCol;
+                Label note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == col);
+                note.Background = Brushes.Blue;
+            };
+            track.TrackGrid.DeletedNoteEvent += (o, e) =>
+            {
+                int row = Math.Abs((int)e.NoteName - 82);
+                int col = e.StartCol;
+                Label note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == col);
+                note.Background = Brushes.LightGray;
+            };
+            track.TrackGrid.IncreasedNoteEvent += (o, e) =>
+            {
+
+            };
+            track.TrackGrid.DecreasedNoteEvent += (o, e) =>
+            {
+
+            };
             var trackStack = CreateUIPercussionTrack();
             TrackStack.Children.Add(trackStack);
             grids[10] = new StackPanel();
             for (int i = 0; i < 5; i++)
             {
-                grids[10].Children.Add(MakeMeasure(composition.Signature, 48));
+                grids[10].Children.Add(MakePercussionMeasure(composition.Signature, (ushort)i));
             }
 
 
@@ -530,6 +683,29 @@ namespace WPFSequencer
                 TransferFromMeasureStackToGrids(selectedTrack);
             selectedTrack = track;
             TransferFromGridsToMeasureStack(selectedTrack);
+        }
+
+        private void UpdateGrid(Track track)
+        {
+            grids[(byte)track.Channel].Children.Clear();
+            ushort k = 0;
+            foreach(var item in track.TrackGrid.GridMeasures)
+            {
+                var grid = MakeMeasure(composition.Signature, k, track);
+                grids[(byte)track.Channel].Children.Add(grid);
+                for (byte i = 0; i < 128; i++)
+                {
+                    for(byte j = 0; j < (byte)composition.Signature; j++)
+                    {
+                        if (item.notes[i, j] != null)
+                        {
+                            Label note = (Label)grid.Children.Cast<UIElement>().First(e => System.Windows.Controls.Grid.GetRow(e) == i && System.Windows.Controls.Grid.GetColumn(e) == j);
+                            note.Background = Brushes.Blue;
+                        }
+                    }
+                }
+                k++;
+            }
         }
 
         private void TransferFromMeasureStackToGrids(Track track)
@@ -572,6 +748,33 @@ namespace WPFSequencer
         private void MeasuresScroll_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
             NamesScroll.ScrollToVerticalOffset(MeasuresScroll.VerticalOffset);
+        }
+
+        private async void PlayButton_Click(object sender, RoutedEventArgs e)
+        {
+            PlayButton.IsEnabled = false;
+            PauseButton.IsEnabled = true;
+            StopButton.IsEnabled = true;
+            await composition?.play();
+            PlayButton.IsEnabled = true;
+            PauseButton.IsEnabled = false;
+            StopButton.IsEnabled = false;
+        }
+
+        private void PauseButton_Click(object sender, RoutedEventArgs e)
+        {
+            composition?.pause();
+            PlayButton.IsEnabled = true; 
+            PauseButton.IsEnabled = false;
+            StopButton.IsEnabled = true;
+        }
+
+        private void StopButton_Click(object sender, RoutedEventArgs e)
+        {
+            composition?.stop();
+            PlayButton.IsEnabled = true;
+            PauseButton.IsEnabled = false;
+            StopButton.IsEnabled = false;
         }
     }
 }

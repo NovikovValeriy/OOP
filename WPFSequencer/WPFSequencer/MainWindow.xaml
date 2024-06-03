@@ -117,18 +117,74 @@
             <Button
                 x:Name="PlayButton"
                 Margin="0,0,10,0"
+                Click="PlayButton_Click"
                 >Play
             </Button>
             <Button
                 x:Name="PauseButton"
                 Margin="0,0,10,0"
+                Click="PauseButton_Click"
                 >Pause
             </Button>
             <Button
                 x:Name="StopButton"
                 Margin="0,0,10,0"
+                Click="StopButton_Click"
                 >Stop
             </Button>
+            <Label
+                VerticalAlignment="Center"
+                >
+                Add note
+            </Label>
+            <RadioButton
+                x:Name="AddRadioButton"
+                GroupName="Actions"
+                VerticalAlignment="Center"
+                Margin="0,0,10,0"
+                IsChecked="True"
+                >
+                
+            </RadioButton>
+            <Label
+                VerticalAlignment="Center"
+                >
+                Delete note
+            </Label>
+            <RadioButton
+                x:Name="DeleteRadioButton"
+                GroupName="Actions"
+                VerticalAlignment="Center"
+                Margin="0,0,10,0"
+                >
+                
+            </RadioButton>
+            <Label
+                VerticalAlignment="Center"
+                >
+                Increase note
+            </Label>
+            <RadioButton
+                x:Name="IncreaseRadioButton"
+                GroupName="Actions"
+                VerticalAlignment="Center"
+                Margin="0,0,10,0"
+                >
+                
+            </RadioButton>
+            <Label
+                VerticalAlignment="Center"
+                >
+                Decrease note
+            </Label>
+            <RadioButton
+                x:Name="DecreaseRadioButton"
+                GroupName="Actions"
+                VerticalAlignment="Center"
+                Margin="0,0,10,0"
+                >
+                
+            </RadioButton>
         </StackPanel>
         
         <StackPanel
