@@ -24,6 +24,9 @@ namespace WPFSequencer
         int cellSize = 25;
         Dictionary<byte, StackPanel> grids;
         Track selectedTrack;
+        Brush emptyNoteColor = Brushes.LightGray;
+        Brush singleNoteColor = Brushes.Blue;
+        Brush increasedNoteColor = Brushes.Green;
         public MainWindow()
         {
             grids = new Dictionary<byte, StackPanel>();
@@ -42,7 +45,7 @@ namespace WPFSequencer
                 for (byte j = 0; j < (byte)s; j++)
                 {
                     grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(cellSize) });
-                    Label label = new Label() { Background = Brushes.LightGray, BorderBrush = Brushes.Gray, BorderThickness = new Thickness(1) };
+                    Label label = new Label() { Background = emptyNoteColor, BorderBrush = Brushes.Gray, BorderThickness = new Thickness(1) };
                     label.MouseDown += (o, e) =>
                     {
                         byte row = (byte)System.Windows.Controls.Grid.GetRow((Label)o);
@@ -72,7 +75,7 @@ namespace WPFSequencer
                 }
             }
             
-            Label label1 = new Label() { Background = Brushes.LightGray, BorderBrush = Brushes.Gray, BorderThickness = new Thickness(1), Content = $"Measure {index + 1}" };
+            Label label1 = new Label() { Background = emptyNoteColor, BorderBrush = Brushes.Gray, BorderThickness = new Thickness(1), Content = $"Measure {index + 1}" };
             System.Windows.Controls.Grid.SetRow(label1, 0);
             System.Windows.Controls.Grid.SetColumn(label1, 0);
             System.Windows.Controls.Grid.SetColumnSpan(label1, (byte)s);
@@ -99,7 +102,7 @@ namespace WPFSequencer
                 for (byte j = 0; j < (byte)s; j++)
                 {
                     grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(cellSize) });
-                    Label label = new Label() { Background = Brushes.LightGray, BorderBrush = Brushes.Gray, BorderThickness = new Thickness(1) };
+                    Label label = new Label() { Background = emptyNoteColor, BorderBrush = Brushes.Gray, BorderThickness = new Thickness(1) };
                     label.MouseDown += (o, e) =>
                     {
                         int row = Math.Abs(System.Windows.Controls.Grid.GetRow((Label)o) - 82);
@@ -128,7 +131,7 @@ namespace WPFSequencer
                 }
             }
 
-            Label label1 = new Label() { Background = Brushes.LightGray, BorderBrush = Brushes.Gray, BorderThickness = new Thickness(1), Content = $"Measure {index + 1}" };
+            Label label1 = new Label() { Background = emptyNoteColor, BorderBrush = Brushes.Gray, BorderThickness = new Thickness(1), Content = $"Measure {index + 1}" };
             System.Windows.Controls.Grid.SetRow(label1, 0);
             System.Windows.Controls.Grid.SetColumn(label1, 0);
             System.Windows.Controls.Grid.SetColumnSpan(label1, (byte)s);
@@ -576,9 +579,14 @@ namespace WPFSequencer
             {
                 byte? channel = composition?.addTrack(trackAdd.Instrument);
                 Track track = composition?.Tracks[(byte)channel!]!;
-                track.TrackGrid.AddedMeasuresEvent += (o, e) =>
+                track.AddedMeasuresEvent += (o, e) =>
                 {
-                    
+                    if (grids[(byte)track.Channel].Children.Count == 0)
+                    {
+                        TransferFromMeasureStackToGrids(track);
+                    }
+                    UpdateGrid(track);
+                    TransferFromGridsToMeasureStack(track);
                 };
                 track.TrackGrid.AddedNoteEvent += (o, e) =>
                 {
@@ -590,9 +598,9 @@ namespace WPFSequencer
                     .Children
                     .Cast<UIElement>()
                     .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == col);
-                    note.Background = Brushes.Blue;
+                    note.Background = singleNoteColor;
                 };
-                track.TrackGrid.DeletedNoteEvent += (o, e) =>
+                track.TrackGrid.DeletedNoteEvent += (o, e) =>   //Реализовать удаление увеличенных нот
                 {
                     int row = Math.Abs((int)e.NoteName - 128);
                     int col = e.StartCol;
@@ -602,7 +610,7 @@ namespace WPFSequencer
                     .Children
                     .Cast<UIElement>()
                     .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == col);
-                    note.Background = Brushes.LightGray;
+                    note.Background = emptyNoteColor;
                 };
                 track.TrackGrid.IncreasedNoteEvent += (o, e) =>
                 {
@@ -617,10 +625,7 @@ namespace WPFSequencer
                     var trackStack = CreateUITrack(trackAdd.Instrument, channel);
                     TrackStack.Children.Add(trackStack);
                     grids[(byte)channel] = new StackPanel();
-                    for (int i = 0; i < 5; i++)
-                    {
-                        grids[(byte)channel].Children.Add(MakeMeasure(composition.Signature, (ushort)i, track));
-                    }
+                    UpdateGrid(track);
                     
 
                     if (selectedTrack != null)
@@ -634,9 +639,14 @@ namespace WPFSequencer
         {
             if(!composition!.addPercussionTrack()) return;
             Track track = composition.PercussionTrack!;
-            track.TrackGrid.AddedMeasuresEvent += (o, e) =>
+            track.AddedMeasuresEvent += (o, e) =>
             {
-
+                if (grids[(byte)track.Channel].Children.Count == 0)
+                {
+                    TransferFromMeasureStackToGrids(track);
+                }
+                UpdatePercussionGrid();
+                TransferFromGridsToMeasureStack(track);
             };
             track.TrackGrid.AddedNoteEvent += (o, e) =>
             {
@@ -648,9 +658,18 @@ namespace WPFSequencer
                 .Children
                 .Cast<UIElement>()
                 .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == col);
-                note.Background = Brushes.Blue;
+                note.Background = singleNoteColor;
+                if(track.TrackGrid.MeasureAmount > MeasuresStack.Children.Count)
+                {
+                    if (grids[(byte)track.Channel].Children.Count == 0)
+                    {
+                        TransferFromMeasureStackToGrids(track);
+                    }
+                    UpdatePercussionGrid();
+                    TransferFromGridsToMeasureStack(track);
+                }
             };
-            track.TrackGrid.DeletedNoteEvent += (o, e) =>
+            track.TrackGrid.DeletedNoteEvent += (o, e) => //Реализовать удаление увеличенных нот
             {
                 int row = Math.Abs((int)e.NoteName - 82);
                 int col = e.StartCol;
@@ -660,7 +679,7 @@ namespace WPFSequencer
                 .Children
                 .Cast<UIElement>()
                 .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == col);
-                note.Background = Brushes.LightGray;
+                note.Background = emptyNoteColor;
             };
             track.TrackGrid.IncreasedNoteEvent += (o, e) =>
             {
@@ -673,10 +692,7 @@ namespace WPFSequencer
             var trackStack = CreateUIPercussionTrack();
             TrackStack.Children.Add(trackStack);
             grids[10] = new StackPanel();
-            for (int i = 0; i < 5; i++)
-            {
-                grids[10].Children.Add(MakePercussionMeasure(composition.Signature, (ushort)i));
-            }
+            UpdatePercussionGrid();
 
 
             if (selectedTrack != null)
@@ -687,24 +703,70 @@ namespace WPFSequencer
 
         private void UpdateGrid(Track track)
         {
-            grids[(byte)track.Channel].Children.Clear();
-            ushort k = 0;
-            foreach(var item in track.TrackGrid.GridMeasures)
+            for (int p = grids[(byte)track.Channel].Children.Count; p < track.TrackGrid.GridMeasures.Count; p++)
             {
-                var grid = MakeMeasure(composition.Signature, k, track);
+                var item = track.TrackGrid.GridMeasures[p];
+                var grid = MakeMeasure(composition.Signature, (ushort)p, track);
                 grids[(byte)track.Channel].Children.Add(grid);
                 for (byte i = 0; i < 128; i++)
                 {
-                    for(byte j = 0; j < (byte)composition.Signature; j++)
+                    for (byte j = 0; j < (byte)composition.Signature; j++)
                     {
                         if (item.notes[i, j] != null)
                         {
-                            Label note = (Label)grid.Children.Cast<UIElement>().First(e => System.Windows.Controls.Grid.GetRow(e) == i && System.Windows.Controls.Grid.GetColumn(e) == j);
-                            note.Background = Brushes.Blue;
+                            Label note = (Label)grid
+                                .Children
+                                .Cast<UIElement>()
+                                .First(e =>
+                                System.Windows.Controls.Grid.GetRow(e) == Math.Abs(i - 128)
+                                && System.Windows.Controls.Grid.GetColumn(e) == j);
+                            if (item.notes[i, j].Form == NoteForm.FullNote)
+                            {
+                                note.Background = singleNoteColor;
+                            }
+                            else
+                            {
+                                note.Background = increasedNoteColor;
+                            }
+
                         }
                     }
                 }
-                k++;
+            }
+        }
+
+        private void UpdatePercussionGrid()
+        {
+            Track track = composition.PercussionTrack;
+            for (int p = grids[10].Children.Count; p < track.TrackGrid.GridMeasures.Count; p++)
+            {
+                var item = track.TrackGrid.GridMeasures[p];
+                var grid = MakePercussionMeasure(composition.Signature, (ushort)p);
+                grids[10].Children.Add(grid);
+                for (byte i = 35; i < 82; i++)
+                {
+                    for (byte j = 0; j < (byte)composition.Signature; j++)
+                    {
+                        if (item.notes[i, j] != null)
+                        {
+                            Label note = (Label)grid
+                                .Children
+                                .Cast<UIElement>()
+                                .First(e =>
+                                System.Windows.Controls.Grid.GetRow(e) == Math.Abs(i - 82)
+                                && System.Windows.Controls.Grid.GetColumn(e) == j);
+                            if (item.notes[i, j].Form == NoteForm.FullNote)
+                            {
+                                note.Background = singleNoteColor;
+                            }
+                            else
+                            {
+                                note.Background = increasedNoteColor;
+                            }
+
+                        }
+                    }
+                }
             }
         }
 
@@ -735,7 +797,7 @@ namespace WPFSequencer
             foreach (StackPanel child in TrackStack.Children)
             {
                 if(Convert.ToByte(child.Name.Remove(0, 5)) == track.Channel) child.Background = Brushes.LightGreen;
-                else child.Background = Brushes.LightGray;
+                else child.Background = emptyNoteColor;
             }
         }
 
