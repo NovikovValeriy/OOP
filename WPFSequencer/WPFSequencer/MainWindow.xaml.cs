@@ -320,8 +320,7 @@ namespace WPFSequencer
             {
                 var value = Convert.ToByte(volumeSlider.Value);
                 volumeValueLabel.Content = value.ToString();
-                var track = composition?.Tracks[(byte)channel!];
-                track.Volume = value;
+                composition?.changeTrackVolume((byte)channel, value);
             };
             volumeValueLabel.Content = Convert.ToByte(volumeSlider.Value).ToString();
 
