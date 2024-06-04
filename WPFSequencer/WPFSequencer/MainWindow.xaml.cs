@@ -26,7 +26,9 @@ namespace WPFSequencer
         Track selectedTrack;
         Brush emptyNoteColor = Brushes.LightGray;
         Brush singleNoteColor = Brushes.Blue;
-        Brush increasedNoteColor = Brushes.Green;
+        Brush startNoteColor = Brushes.Red;
+        Brush endNoteColor = Brushes.Purple;
+        Brush middleNoteColor = Brushes.Green;
         public MainWindow()
         {
             grids = new Dictionary<byte, StackPanel>();
@@ -616,14 +618,8 @@ namespace WPFSequencer
                 .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == col);
                 note.Background = emptyNoteColor;
             };
-            track.TrackGrid.IncreasedNoteEvent += (o, e) =>
-            {
-
-            };
-            track.TrackGrid.DecreasedNoteEvent += (o, e) =>
-            {
-
-            };
+            track.TrackGrid.IncreasedNoteEvent += IncreaseNoteHandler;
+            track.TrackGrid.DecreasedNoteEvent += DecreaseNoteHandler;
             if (channel != null && channel < 17)
             {
                 var trackStack = CreateUITrack(instrument, channel, volume, isAct);
@@ -683,14 +679,8 @@ namespace WPFSequencer
                 .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == col);
                 note.Background = emptyNoteColor;
             };
-            track.TrackGrid.IncreasedNoteEvent += (o, e) =>
-            {
-
-            };
-            track.TrackGrid.DecreasedNoteEvent += (o, e) =>
-            {
-
-            };
+            track.TrackGrid.IncreasedNoteEvent += IncreasePercussionNoteHandler;
+            track.TrackGrid.DecreasedNoteEvent += DecreasePercussionNoteHandler;
             var trackStack = CreateUIPercussionTrack(volume, isAct);
             TrackStack.Children.Add(trackStack);
             grids[10] = new StackPanel();
@@ -736,15 +726,21 @@ namespace WPFSequencer
                                 .First(e =>
                                 System.Windows.Controls.Grid.GetRow(e) == Math.Abs(i - 128)
                                 && System.Windows.Controls.Grid.GetColumn(e) == j);
-                            if (item.notes[i, j].Form == NoteForm.FullNote)
+                            var form = item.notes[i, j].Form;
+                            Brush color = middleNoteColor;
+                            if (form == NoteForm.FullNote)
                             {
-                                note.Background = singleNoteColor;
+                                color = singleNoteColor;
                             }
-                            else
+                            else if(form == NoteForm.StartNote)
                             {
-                                note.Background = increasedNoteColor;
+                                color = startNoteColor;
                             }
-
+                            else if(form == NoteForm.EndNote)
+                            {
+                                color = endNoteColor;
+                            }
+                            note.Background = color;
                         }
                     }
                 }
@@ -771,15 +767,21 @@ namespace WPFSequencer
                                 .First(e =>
                                 System.Windows.Controls.Grid.GetRow(e) == Math.Abs(i - 82)
                                 && System.Windows.Controls.Grid.GetColumn(e) == j);
-                            if (item.notes[i, j].Form == NoteForm.FullNote)
+                            var form = item.notes[i, j].Form;
+                            Brush color = middleNoteColor;
+                            if (form == NoteForm.FullNote)
                             {
-                                note.Background = singleNoteColor;
+                                color = singleNoteColor;
                             }
-                            else
+                            else if (form == NoteForm.StartNote)
                             {
-                                note.Background = increasedNoteColor;
+                                color = startNoteColor;
                             }
-
+                            else if (form == NoteForm.EndNote)
+                            {
+                                color = endNoteColor;
+                            }
+                            note.Background = color;
                         }
                     }
                 }
@@ -853,6 +855,279 @@ namespace WPFSequencer
             PlayButton.IsEnabled = true;
             PauseButton.IsEnabled = false;
             StopButton.IsEnabled = false;
+        }
+    
+        private void IncreaseNoteHandler(object sender, NoteArgs e)
+        {
+            ushort startMeasure = e.StartMeasure;
+            ushort endMeasure = e.EndMeasure;
+            byte startNote = e.StartCol;
+            byte endNote = e.EndCol;
+            byte row = (byte)Math.Abs((int)e.NoteName - 128);
+            Label note;
+
+            if (startMeasure == endMeasure)
+            {
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote);
+                note.Background = endNoteColor;
+
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote - 1);
+                note.Background = middleNoteColor;
+
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == startNote);
+                note.Background = startNoteColor;
+                return;
+            }
+            if (endNote == 0)
+            {
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote);
+                note.Background = endNoteColor;
+
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure - 1]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == (int)composition!.Signature - 1);
+                note.Background = middleNoteColor;
+
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == startNote);
+                note.Background = startNoteColor;
+                return;
+            }
+
+            note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote);
+            note.Background = endNoteColor;
+
+            note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote - 1);
+            note.Background = middleNoteColor;
+        }
+        private void DecreaseNoteHandler(object sender, NoteArgs e)
+        {
+            ushort startMeasure = e.StartMeasure;
+            ushort endMeasure = e.EndMeasure;
+            byte startNote = e.StartCol;
+            byte endNote = e.EndCol;
+            byte row = (byte)Math.Abs((int)e.NoteName - 128);
+            Label note;
+            if (endNote == (byte)composition.Signature - 1)
+            {
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure + 1]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == 0);
+                note.Background = emptyNoteColor;
+
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote);
+                note.Background = endNoteColor;
+            }
+            else
+            {
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote + 1);
+                note.Background = emptyNoteColor;
+
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote);
+                note.Background = endNoteColor;
+            }
+            note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == startNote);
+            if (startMeasure == endMeasure && startNote == endNote)
+            {
+                note.Background = singleNoteColor;
+            }
+            else note.Background = startNoteColor;
+        }
+        private void IncreasePercussionNoteHandler(object sender, NoteArgs e)
+        {
+            ushort startMeasure = e.StartMeasure;
+            ushort endMeasure = e.EndMeasure;
+            byte startNote = e.StartCol;
+            byte endNote = e.EndCol;
+            byte row = (byte)Math.Abs((int)e.NoteName - 82);
+            Label note;
+
+            if (startMeasure == endMeasure)
+            {
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote);
+                note.Background = endNoteColor;
+
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote - 1);
+                note.Background = middleNoteColor;
+
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == startNote);
+                note.Background = startNoteColor;
+                return;
+            }
+            if (endNote == 0)
+            {
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote);
+                note.Background = endNoteColor;
+
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure - 1]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == (int)composition!.Signature - 1);
+                note.Background = middleNoteColor;
+
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == startNote);
+                note.Background = startNoteColor;
+                return;
+            }
+
+            note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote);
+            note.Background = endNoteColor;
+
+            note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote - 1);
+            note.Background = middleNoteColor;
+        }
+        private void DecreasePercussionNoteHandler(object sender, NoteArgs e)
+        {
+            ushort startMeasure = e.StartMeasure;
+            ushort endMeasure = e.EndMeasure;
+            byte startNote = e.StartCol;
+            byte endNote = e.EndCol;
+            byte row = (byte)Math.Abs((int)e.NoteName - 82);
+            Label note;
+            if (endNote == (byte)composition.Signature - 1)
+            {
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure + 1]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == 0);
+                note.Background = emptyNoteColor;
+
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote);
+                note.Background = endNoteColor;
+            }
+            else
+            {
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote + 1);
+                note.Background = emptyNoteColor;
+
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote);
+                note.Background = endNoteColor;
+            }
+            note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == startNote);
+            if (startMeasure == endMeasure && startNote == endNote)
+            {
+                note.Background = singleNoteColor;
+            }
+            else note.Background = startNoteColor;
         }
     }
 }
