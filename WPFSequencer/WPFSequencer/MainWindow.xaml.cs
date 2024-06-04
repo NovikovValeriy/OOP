@@ -26,9 +26,9 @@ namespace WPFSequencer
         Track selectedTrack;
         Brush emptyNoteColor = Brushes.LightGray;
         Brush singleNoteColor = Brushes.Blue;
-        Brush startNoteColor = Brushes.Red;
-        Brush endNoteColor = Brushes.Purple;
-        Brush middleNoteColor = Brushes.Green;
+        Brush startNoteColor = Brushes.Green;
+        Brush endNoteColor = Brushes.Red;
+        Brush middleNoteColor = Brushes.Yellow;
         public MainWindow()
         {
             grids = new Dictionary<byte, StackPanel>();
