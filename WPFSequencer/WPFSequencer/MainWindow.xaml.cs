@@ -22,6 +22,7 @@ namespace WPFSequencer
     {
         Composition? composition;
         int cellSize = 25;
+        bool isPlaying = false;
         Dictionary<byte, StackPanel> grids;
         Track selectedTrack;
         Brush emptyNoteColor = Brushes.LightGray;
@@ -50,6 +51,7 @@ namespace WPFSequencer
                     Label label = new Label() { Background = emptyNoteColor, BorderBrush = Brushes.Gray, BorderThickness = new Thickness(1) };
                     label.MouseDown += (o, e) =>
                     {
+                        if (isPlaying) return;
                         byte row = (byte)System.Windows.Controls.Grid.GetRow((Label)o);
                         row -= 1;
                         byte col = (byte)System.Windows.Controls.Grid.GetColumn((Label)o);
@@ -202,15 +204,19 @@ namespace WPFSequencer
             CompositionCreate compositionCreate = new CompositionCreate();
             if(compositionCreate.ShowDialog() == true)
             {
-                //MeasuresStack.Children.Clear();
-                //TrackStack.Children.Clear();
-                //for (byte i = 1; i < 17; i++)
-                //{
-                //    grids[i].Children.Clear();
-                //}
-                composition?.midiDispose();
-                composition = new Composition(compositionCreate.Signature, compositionCreate.Bpm);
+                MeasuresStack.Children.Clear();
+                TrackStack.Children.Clear();
+                NamesGrid.Children.Clear();
+                NamesGrid.RowDefinitions.Clear();
+                StackPanel panel = new StackPanel();
+                for (byte i = 1; i < 17; i++)
+                {
+                    if (grids.TryGetValue(i, out panel)) grids[i].Children.Clear();
+                }
+                CreateComposition(compositionCreate.Signature, compositionCreate.Bpm);
                 ChangeMenuItems(true);
+                isPlaying = false;
+                PlayButton.IsEnabled = true;
                 PauseButton.IsEnabled = false;
                 StopButton.IsEnabled = false;
                 SignatureLabel.Content = composition.Signature;
@@ -219,10 +225,11 @@ namespace WPFSequencer
         }
         private void Load_Composition_Click(object sender, RoutedEventArgs e)
         {
-            composition?.midiDispose();
-            composition = new Composition();
+            CreateComposition();
             composition?.loadFromBinary("C:\\Users\\dzmitry\\source\\repos\\4sem\\OOP\\TestingProject\\file.bin");
             ChangeMenuItems(true);
+            isPlaying = false;
+            PlayButton.IsEnabled = true;
             PauseButton.IsEnabled = false;
             StopButton.IsEnabled = false;
             SignatureLabel.Content = composition?.Signature;
@@ -582,6 +589,32 @@ namespace WPFSequencer
             selectedTrack = track;
         }
 
+        private void CreateComposition(Signatures s = Signatures.FourZFour, byte bpm = 120)
+        {
+            composition?.midiDispose();
+            composition = new Composition(s, bpm);
+            composition.Playing += (o, e) =>
+            {
+                isPlaying = true;
+                PlayButton.IsEnabled = false;
+                PauseButton.IsEnabled = true;
+                StopButton.IsEnabled = true;
+            };
+            composition.Paused += (o, e) =>
+            {
+                isPlaying = false;
+                PlayButton.IsEnabled = true;
+                PauseButton.IsEnabled = false;
+                StopButton.IsEnabled = true;
+            };
+            composition.Stopped += (o, e) =>
+            {
+                isPlaying = false;
+                PlayButton.IsEnabled = true;
+                PauseButton.IsEnabled = false;
+                StopButton.IsEnabled = false;
+            };
+        }
         private void CreateTrack(byte channel, Instruments instrument, byte volume = 127, bool isAct = true)
         {
             Track track = composition?.Tracks[(byte)channel!]!;
@@ -830,31 +863,19 @@ namespace WPFSequencer
             NamesScroll.ScrollToVerticalOffset(MeasuresScroll.VerticalOffset);
         }
 
-        private async void PlayButton_Click(object sender, RoutedEventArgs e)
+        private void PlayButton_Click(object sender, RoutedEventArgs e)
         {
-            PlayButton.IsEnabled = false;
-            PauseButton.IsEnabled = true;
-            StopButton.IsEnabled = true;
-            await composition?.play();
-            PlayButton.IsEnabled = true;
-            PauseButton.IsEnabled = false;
-            StopButton.IsEnabled = false;
+            composition?.play();
         }
 
         private void PauseButton_Click(object sender, RoutedEventArgs e)
         {
             composition?.pause();
-            PlayButton.IsEnabled = true; 
-            PauseButton.IsEnabled = false;
-            StopButton.IsEnabled = true;
         }
 
         private void StopButton_Click(object sender, RoutedEventArgs e)
         {
             composition?.stop();
-            PlayButton.IsEnabled = true;
-            PauseButton.IsEnabled = false;
-            StopButton.IsEnabled = false;
         }
     
         private void IncreaseNoteHandler(object sender, NoteArgs e)
