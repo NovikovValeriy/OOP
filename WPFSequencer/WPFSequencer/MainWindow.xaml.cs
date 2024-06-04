@@ -346,13 +346,11 @@ namespace WPFSequencer
             };
             activeCheckBox.Checked += (object s, RoutedEventArgs e) =>
             {
-                var track = composition?.Tracks[(byte)channel!];
-                track.IsActive = true;
+                composition?.unmuteTrack((byte)channel!);
             };
             activeCheckBox.Unchecked += (object s, RoutedEventArgs e) =>
             {
-                var track = composition?.Tracks[(byte)channel!];
-                track.IsActive = false;
+                composition?.muteTrack((byte)channel!);
             };
 
             StackPanel buttonsStackPanel = new StackPanel()
@@ -368,7 +366,7 @@ namespace WPFSequencer
             };
             changeButton.Click += (object s, RoutedEventArgs e) =>
             {
-                TrackAdd trackAdd = new TrackAdd();
+                TrackAdd trackAdd = new TrackAdd("Change", "Change instrument");
                 if(trackAdd.ShowDialog() == true)
                 {
                     var track = composition?.Tracks[(byte)channel!];
@@ -706,7 +704,7 @@ namespace WPFSequencer
         }
         private void MenuAddTrackItem_Click(object sender, RoutedEventArgs e)
         {
-            TrackAdd trackAdd = new TrackAdd();
+            TrackAdd trackAdd = new TrackAdd("Add", "Add track");
             if(trackAdd.ShowDialog() == true)
             {
                 byte? channel = composition?.addTrack(trackAdd.Instrument);

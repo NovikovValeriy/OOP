@@ -20,9 +20,11 @@ namespace WPFSequencer
     /// </summary>
     public partial class TrackAdd : Window
     {
-        public TrackAdd()
+        public TrackAdd(string cont1, string cont2)
         {
             InitializeComponent();
+            Title = cont2;
+            button.Content = cont1;
             ResizeMode = ResizeMode.NoResize;
             List<Instruments> lst = Enum.GetValues(typeof(Instruments)).Cast<Instruments>().ToList();
             instrumentList.Items.Clear();
