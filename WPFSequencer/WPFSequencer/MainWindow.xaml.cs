@@ -109,6 +109,7 @@ namespace WPFSequencer
                     Label label = new Label() { Background = emptyNoteColor, BorderBrush = Brushes.Gray, BorderThickness = new Thickness(1) };
                     label.MouseDown += (o, e) =>
                     {
+                        if (isPlaying) return;
                         int row = Math.Abs(System.Windows.Controls.Grid.GetRow((Label)o) - 82);
                         byte col = (byte)System.Windows.Controls.Grid.GetColumn((Label)o);
                         if ((bool)AddRadioButton.IsChecked!)
@@ -639,18 +640,7 @@ namespace WPFSequencer
                 .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == col);
                 note.Background = singleNoteColor;
             };
-            track.TrackGrid.DeletedNoteEvent += (o, e) =>   //Реализовать удаление увеличенных нот
-            {
-                int row = Math.Abs((int)e.NoteName - 128);
-                int col = e.StartCol;
-                Label note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
-                )
-                .Children
-                .Cast<UIElement>()
-                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == col);
-                note.Background = emptyNoteColor;
-            };
+            track.TrackGrid.DeletedNoteEvent += DeleteNoteHandler;
             track.TrackGrid.IncreasedNoteEvent += IncreaseNoteHandler;
             track.TrackGrid.DecreasedNoteEvent += DecreaseNoteHandler;
             if (channel != null && channel < 17)
@@ -700,18 +690,7 @@ namespace WPFSequencer
                     TransferFromGridsToMeasureStack(track);
                 }
             };
-            track.TrackGrid.DeletedNoteEvent += (o, e) => //Реализовать удаление увеличенных нот
-            {
-                int row = Math.Abs((int)e.NoteName - 82);
-                int col = e.StartCol;
-                Label note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
-                )
-                .Children
-                .Cast<UIElement>()
-                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == col);
-                note.Background = emptyNoteColor;
-            };
+            track.TrackGrid.DeletedNoteEvent += DeletePercussionNoteHandler;
             track.TrackGrid.IncreasedNoteEvent += IncreasePercussionNoteHandler;
             track.TrackGrid.DecreasedNoteEvent += DecreasePercussionNoteHandler;
             var trackStack = CreateUIPercussionTrack(volume, isAct);
@@ -1149,6 +1128,119 @@ namespace WPFSequencer
                 note.Background = singleNoteColor;
             }
             else note.Background = startNoteColor;
+        }
+        private void DeleteNoteHandler(object sender, NoteArgs e)
+        {
+            ushort startMeasure = e.StartMeasure;
+            ushort endMeasure = e.EndMeasure;
+            byte startNote = e.StartCol;
+            byte endNote = e.EndCol;
+            byte row = (byte)Math.Abs((int)e.NoteName - 128);
+            Label note;
+            if (startMeasure == endMeasure)
+            {
+                for (byte n = startNote; n <= endNote; n++)
+                {
+                    note = (Label)(
+                        (System.Windows.Controls.Grid)MeasuresStack.Children[startMeasure]
+                    )
+                    .Children
+                    .Cast<UIElement>()
+                    .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == n);
+                    note.Background = emptyNoteColor;
+                }
+                return;
+            }
+            for (byte n = startNote; n < (byte)composition.Signature; n++)
+            {
+                note = (Label)(
+                        (System.Windows.Controls.Grid)MeasuresStack.Children[startMeasure]
+                    )
+                    .Children
+                    .Cast<UIElement>()
+                    .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == n);
+                note.Background = emptyNoteColor;
+            }
+            for (ushort m = (ushort)(startMeasure + 1); m < endMeasure; m++)
+            {
+                for (byte n = 0; n < (byte)composition.Signature; n++)
+                {
+                    note = (Label)(
+                        (System.Windows.Controls.Grid)MeasuresStack.Children[m]
+                    )
+                    .Children
+                    .Cast<UIElement>()
+                    .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == n);
+                    note.Background = emptyNoteColor;
+                }
+            }
+            for (byte n = 0; n <= endNote; n++)
+            {
+                note = (Label)(
+                        (System.Windows.Controls.Grid)MeasuresStack.Children[endMeasure]
+                    )
+                    .Children
+                    .Cast<UIElement>()
+                    .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == n);
+                note.Background = emptyNoteColor;
+            }
+        }
+
+        private void DeletePercussionNoteHandler(object sender, NoteArgs e)
+        {
+            ushort startMeasure = e.StartMeasure;
+            ushort endMeasure = e.EndMeasure;
+            byte startNote = e.StartCol;
+            byte endNote = e.EndCol;
+            byte row = (byte)Math.Abs((int)e.NoteName - 82);
+            Label note;
+            if (startMeasure == endMeasure)
+            {
+                for (byte n = startNote; n <= endNote; n++)
+                {
+                    note = (Label)(
+                        (System.Windows.Controls.Grid)MeasuresStack.Children[startMeasure]
+                    )
+                    .Children
+                    .Cast<UIElement>()
+                    .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == n);
+                    note.Background = emptyNoteColor;
+                }
+                return;
+            }
+            for (byte n = startNote; n < (byte)composition.Signature; n++)
+            {
+                note = (Label)(
+                        (System.Windows.Controls.Grid)MeasuresStack.Children[startMeasure]
+                    )
+                    .Children
+                    .Cast<UIElement>()
+                    .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == n);
+                note.Background = emptyNoteColor;
+            }
+            for (ushort m = (ushort)(startMeasure + 1); m < endMeasure; m++)
+            {
+                for (byte n = 0; n < (byte)composition.Signature; n++)
+                {
+                    note = (Label)(
+                        (System.Windows.Controls.Grid)MeasuresStack.Children[m]
+                    )
+                    .Children
+                    .Cast<UIElement>()
+                    .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == n);
+                    note.Background = emptyNoteColor;
+                }
+            }
+            for (byte n = 0; n <= endNote; n++)
+            {
+                note = (Label)(
+                        (System.Windows.Controls.Grid)MeasuresStack.Children[endMeasure]
+                    )
+                    .Children
+                    .Cast<UIElement>()
+                    .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == n);
+                note.Background = emptyNoteColor;
+            }
         }
     }
 }
