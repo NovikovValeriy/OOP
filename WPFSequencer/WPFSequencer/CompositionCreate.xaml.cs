@@ -1,6 +1,7 @@
 ﻿using SequencerLibrary.Enumerators;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,6 +21,7 @@ namespace WPFSequencer
     /// </summary>
     public partial class CompositionCreate : Window
     {
+        Dictionary<Signatures, string> _signatures = new Dictionary<Signatures, string>();
         public CompositionCreate()
         {
             InitializeComponent();
@@ -27,12 +29,23 @@ namespace WPFSequencer
             bpmLabel.Content = Convert.ToByte(bpmSlider.Value).ToString();
             ResizeMode = ResizeMode.NoResize;
             List<Signatures> lst = Enum.GetValues(typeof(Signatures)).Cast<Signatures>().ToList();
+            foreach (Signatures sig in lst)
+            {
+                var enumType = typeof(Signatures);
+                var memberInfos = enumType.GetMember(sig.ToString());
+                var enumValueMemberInfo = memberInfos.FirstOrDefault(m => m.DeclaringType == enumType);
+                var valueAttributes = enumValueMemberInfo.GetCustomAttributes(typeof(DescriptionAttribute), false);
+                var description = ((DescriptionAttribute)valueAttributes[0]).Description;
+
+                _signatures.Add(sig, description);
+            }
             signatureList.Items.Clear();
             foreach (Signatures signature in lst)
             {
-                signatureList.Items.Add(signature);
+                //signatureList.Items.Add(signature);
+                signatureList.Items.Add(_signatures[signature]);
             }
-            signatureList.SelectedItem = lst.FirstOrDefault();
+            signatureList.SelectedItem = signatureList.Items[0];
         }
 
         private void Accept_Click(object sender, RoutedEventArgs e)
@@ -47,7 +60,7 @@ namespace WPFSequencer
 
         public Signatures Signature
         {
-            get { return (Signatures)signatureList.SelectedItem; }
+            get { return _signatures.Keys.Where(t => _signatures[t] == signatureList.SelectedItem).FirstOrDefault(); }
         }
 
         private void bpmSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)

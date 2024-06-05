@@ -1,6 +1,7 @@
 ﻿using SequencerLibrary.Entities;
 using SequencerLibrary.Enumerators;
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Threading.Channels;
@@ -204,20 +205,6 @@ namespace WPFSequencer
             PlayButton.IsEnabled = b;
             PauseButton.IsEnabled = b;
             StopButton.IsEnabled = b;
-        }
-        private string ConvertSignature(Signatures? signature)
-        {
-            string s = signature.ToString();
-            var arr = s.Split('Z');
-            string answ = string.Empty;
-            foreach (var item in arr)
-            {
-                string num = string.Empty;
-                if (item == "Four") num = "4/";
-                else if (item == "Three") num = "3/";
-                answ += num;
-            }
-            return answ.Remove(answ.Length - 1, 1);
         }
 
 
@@ -728,7 +715,12 @@ namespace WPFSequencer
             PlayButton.IsEnabled = true;
             PauseButton.IsEnabled = false;
             StopButton.IsEnabled = false;
-            SignatureLabel.Content = ConvertSignature(composition?.Signature);
+            var enumType = typeof(Signatures);
+            var memberInfos = enumType.GetMember(composition?.Signature.ToString());
+            var enumValueMemberInfo = memberInfos.FirstOrDefault(m => m.DeclaringType == enumType);
+            var valueAttributes = enumValueMemberInfo.GetCustomAttributes(typeof(DescriptionAttribute), false);
+            var description = ((DescriptionAttribute)valueAttributes[0]).Description;
+            SignatureLabel.Content = description;
             BpmLabel.Content = composition.Bpm;
             BpmSlider.Value = composition.Bpm;
         }
