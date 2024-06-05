@@ -1,6 +1,7 @@
 ﻿using SequencerLibrary.Entities;
 using SequencerLibrary.Enumerators;
 using System;
+using System.IO;
 using System.Text;
 using System.Threading.Channels;
 using System.Windows;
@@ -30,10 +31,13 @@ namespace WPFSequencer
         Brush startNoteColor = Brushes.Green;
         Brush endNoteColor = Brushes.Red;
         Brush middleNoteColor = Brushes.Yellow;
+        string? filePath = null;
         public MainWindow()
         {
             grids = new Dictionary<byte, StackPanel>();
             InitializeComponent();
+            Title = "NVAmidi";
+            BpmLabel.Content = "";
             ResizeMode = ResizeMode.NoResize;
             ChangeMenuItems(false);
         }
@@ -95,7 +99,6 @@ namespace WPFSequencer
             grid.Width = (byte)s * cellSize + 1;
             return grid;
         }
-
         private System.Windows.Controls.Grid MakePercussionMeasure(Signatures s, ushort index)
         {
             System.Windows.Controls.Grid grid = new System.Windows.Controls.Grid();
@@ -152,6 +155,8 @@ namespace WPFSequencer
             grid.Width = (byte)s * cellSize + 1;
             return grid;
         }
+        
+        
         private void DrawNoteNames()
         {
             MeasuresScroll.Width = 775;
@@ -187,6 +192,7 @@ namespace WPFSequencer
             NamesGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(cellSize) });
         }
 
+
         private void ChangeMenuItems(bool b)
         {
             BpmSlider.IsEnabled = b;
@@ -199,48 +205,49 @@ namespace WPFSequencer
             PauseButton.IsEnabled = b;
             StopButton.IsEnabled = b;
         }
+        private string ConvertSignature(Signatures? signature)
+        {
+            string s = signature.ToString();
+            var arr = s.Split('Z');
+            string answ = string.Empty;
+            foreach (var item in arr)
+            {
+                string num = string.Empty;
+                if (item == "Four") num = "4/";
+                else if (item == "Three") num = "3/";
+                answ += num;
+            }
+            return answ.Remove(answ.Length - 1, 1);
+        }
+
 
         private void Create_New_Composition_Click(object sender, RoutedEventArgs e)
         {
             CompositionCreate compositionCreate = new CompositionCreate();
             if(compositionCreate.ShowDialog() == true)
             {
-                MeasuresStack.Children.Clear();
-                TrackStack.Children.Clear();
-                NamesGrid.Children.Clear();
-                NamesGrid.RowDefinitions.Clear();
-                StackPanel panel = new StackPanel();
-                for (byte i = 1; i < 17; i++)
-                {
-                    if (grids.TryGetValue(i, out panel)) grids[i].Children.Clear();
-                }
+                
                 CreateComposition(compositionCreate.Signature, compositionCreate.Bpm);
                 ChangeMenuItems(true);
-                isPlaying = false;
-                PlayButton.IsEnabled = true;
-                PauseButton.IsEnabled = false;
-                StopButton.IsEnabled = false;
-                SignatureLabel.Content = composition.Signature;
-                BpmLabel.Content = composition.Bpm;
+                UIChangesAfterCompositionCreation();
             }
         }
-        private void Load_Composition_Click(object sender, RoutedEventArgs e)
+        private void MenuAddTrackItem_Click(object sender, RoutedEventArgs e)
         {
-            CreateComposition();
-            composition?.loadFromBinary("C:\\Users\\dzmitry\\source\\repos\\4sem\\OOP\\TestingProject\\file.bin");
-            ChangeMenuItems(true);
-            isPlaying = false;
-            PlayButton.IsEnabled = true;
-            PauseButton.IsEnabled = false;
-            StopButton.IsEnabled = false;
-            SignatureLabel.Content = composition?.Signature;
-            BpmLabel.Content = composition.Bpm;
-            foreach (var item in composition.Tracks.Values)
+            TrackAdd trackAdd = new TrackAdd("Add", "Add track");
+            if (trackAdd.ShowDialog() == true)
             {
-                CreateTrack((byte)item.Channel, item.InstrumentName, item.Volume, item.IsActive);
+                byte? channel = composition?.addTrack(trackAdd.Instrument);
+                CreateTrack((byte)channel, trackAdd.Instrument);
             }
-            if (composition.PercussionTrack != null) CreatePercussionTrack(composition.PercussionTrack.Volume, composition.PercussionTrack.IsActive);
         }
+        private void MenuAddPercussionTrackItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (!composition!.addPercussionTrack()) return;
+            CreatePercussionTrack();
+        }
+        
+        
 
         private StackPanel CreateUITrack(Instruments instrument, byte? channel, byte volume = 127, bool isAct = true)
         {
@@ -414,7 +421,6 @@ namespace WPFSequencer
             outerStackPanel.Children.Add(buttonsStackPanel);
             return outerStackPanel;
         }
-
         private StackPanel CreateUIPercussionTrack(byte volume = 127, bool isAct = true)
         {
             StackPanel outerStackPanel = new StackPanel()
@@ -570,6 +576,7 @@ namespace WPFSequencer
             return outerStackPanel;
         }
 
+
         private void OuterStackPanel_MouseDown(object sender, MouseButtonEventArgs e)
         {
             var channel = Convert.ToByte(((StackPanel)sender).Name.Remove(0, 5));
@@ -587,10 +594,12 @@ namespace WPFSequencer
             selectedTrack = track;
         }
 
+
         private void CreateComposition(Signatures s = Signatures.FourZFour, byte bpm = 120)
         {
             composition?.midiDispose();
             composition = new Composition(s, bpm);
+            selectedTrack = null;
             composition.Playing += (o, e) =>
             {
                 isPlaying = true;
@@ -612,6 +621,7 @@ namespace WPFSequencer
                 PauseButton.IsEnabled = false;
                 StopButton.IsEnabled = false;
             };
+            UIChangesAfterCompositionCreation();
         }
         private void CreateTrack(byte channel, Instruments instrument, byte volume = 127, bool isAct = true)
         {
@@ -621,9 +631,10 @@ namespace WPFSequencer
                 if (grids[(byte)track.Channel].Children.Count == 0)
                 {
                     TransferFromMeasureStackToGrids(track);
+                    UpdateGrid(track);
+                    TransferFromGridsToMeasureStack(track);
                 }
-                UpdateGrid(track);
-                TransferFromGridsToMeasureStack(track);
+                else UpdateGrid(track);
             };
             track.TrackGrid.AddedNoteEvent += (o, e) =>
             {
@@ -662,9 +673,10 @@ namespace WPFSequencer
                 if (grids[(byte)track.Channel].Children.Count == 0)
                 {
                     TransferFromMeasureStackToGrids(track);
+                    UpdateGrid(track);
+                    TransferFromGridsToMeasureStack(track);
                 }
-                UpdatePercussionGrid();
-                TransferFromGridsToMeasureStack(track);
+                else UpdateGrid(track);
             };
             track.TrackGrid.AddedNoteEvent += (o, e) =>
             {
@@ -701,20 +713,26 @@ namespace WPFSequencer
             selectedTrack = track;
             TransferFromGridsToMeasureStack(selectedTrack);
         }
-        private void MenuAddTrackItem_Click(object sender, RoutedEventArgs e)
+        private void UIChangesAfterCompositionCreation()
         {
-            TrackAdd trackAdd = new TrackAdd("Add", "Add track");
-            if(trackAdd.ShowDialog() == true)
+            MeasuresStack.Children.Clear();
+            TrackStack.Children.Clear();
+            NamesGrid.Children.Clear();
+            NamesGrid.RowDefinitions.Clear();
+            StackPanel panel = new StackPanel();
+            for (byte i = 1; i < 17; i++)
             {
-                byte? channel = composition?.addTrack(trackAdd.Instrument);
-                CreateTrack((byte)channel, trackAdd.Instrument);
+                grids[i] = null;
             }
+            isPlaying = false;
+            PlayButton.IsEnabled = true;
+            PauseButton.IsEnabled = false;
+            StopButton.IsEnabled = false;
+            SignatureLabel.Content = ConvertSignature(composition?.Signature);
+            BpmLabel.Content = composition.Bpm;
+            BpmSlider.Value = composition.Bpm;
         }
-        private void MenuAddPercussionTrackItem_Click(object sender, RoutedEventArgs e)
-        {
-            if(!composition!.addPercussionTrack()) return;
-            CreatePercussionTrack();
-        }
+
 
         private void UpdateGrid(Track track)
         {
@@ -755,7 +773,6 @@ namespace WPFSequencer
                 }
             }
         }
-
         private void UpdatePercussionGrid()
         {
             Track track = composition.PercussionTrack;
@@ -797,6 +814,7 @@ namespace WPFSequencer
             }
         }
 
+
         private void TransferFromMeasureStackToGrids(Track track)
         {
             grids[(byte)track.Channel].Children.Clear();
@@ -833,27 +851,26 @@ namespace WPFSequencer
         {
             NamesScroll.ScrollToVerticalOffset(MeasuresScroll.VerticalOffset);
         }
-
         private void MeasuresScroll_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
             NamesScroll.ScrollToVerticalOffset(MeasuresScroll.VerticalOffset);
         }
-
+        
+        
         private void PlayButton_Click(object sender, RoutedEventArgs e)
         {
             composition?.play();
         }
-
         private void PauseButton_Click(object sender, RoutedEventArgs e)
         {
             composition?.pause();
         }
-
         private void StopButton_Click(object sender, RoutedEventArgs e)
         {
             composition?.stop();
         }
     
+
         private void IncreaseNoteHandler(object sender, NoteArgs e)
         {
             ushort startMeasure = e.StartMeasure;
@@ -866,7 +883,7 @@ namespace WPFSequencer
             if (startMeasure == endMeasure)
             {
                 note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[endMeasure]
                 )
                 .Children
                 .Cast<UIElement>()
@@ -874,7 +891,7 @@ namespace WPFSequencer
                 note.Background = endNoteColor;
 
                 note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[endMeasure]
                 )
                 .Children
                 .Cast<UIElement>()
@@ -882,7 +899,7 @@ namespace WPFSequencer
                 note.Background = middleNoteColor;
 
                 note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[startMeasure]
                 )
                 .Children
                 .Cast<UIElement>()
@@ -893,7 +910,7 @@ namespace WPFSequencer
             if (endNote == 0)
             {
                 note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure]
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[endMeasure]
                 )
                 .Children
                 .Cast<UIElement>()
@@ -901,7 +918,7 @@ namespace WPFSequencer
                 note.Background = endNoteColor;
 
                 note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure - 1]
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[endMeasure - 1]
                 )
                 .Children
                 .Cast<UIElement>()
@@ -909,7 +926,7 @@ namespace WPFSequencer
                 note.Background = middleNoteColor;
 
                 note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[startMeasure]
                 )
                 .Children
                 .Cast<UIElement>()
@@ -919,7 +936,7 @@ namespace WPFSequencer
             }
 
             note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure]
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[endMeasure]
                 )
                 .Children
                 .Cast<UIElement>()
@@ -927,7 +944,7 @@ namespace WPFSequencer
             note.Background = endNoteColor;
 
             note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure]
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[endMeasure]
                 )
                 .Children
                 .Cast<UIElement>()
@@ -945,7 +962,7 @@ namespace WPFSequencer
             if (endNote == (byte)composition.Signature - 1)
             {
                 note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure + 1]
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[endMeasure + 1]
                 )
                 .Children
                 .Cast<UIElement>()
@@ -953,7 +970,7 @@ namespace WPFSequencer
                 note.Background = emptyNoteColor;
 
                 note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure]
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[endMeasure]
                 )
                 .Children
                 .Cast<UIElement>()
@@ -963,7 +980,7 @@ namespace WPFSequencer
             else
             {
                 note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure]
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[endMeasure]
                 )
                 .Children
                 .Cast<UIElement>()
@@ -971,7 +988,7 @@ namespace WPFSequencer
                 note.Background = emptyNoteColor;
 
                 note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure]
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[endMeasure]
                 )
                 .Children
                 .Cast<UIElement>()
@@ -979,143 +996,7 @@ namespace WPFSequencer
                 note.Background = endNoteColor;
             }
             note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
-                )
-                .Children
-                .Cast<UIElement>()
-                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == startNote);
-            if (startMeasure == endMeasure && startNote == endNote)
-            {
-                note.Background = singleNoteColor;
-            }
-            else note.Background = startNoteColor;
-        }
-        private void IncreasePercussionNoteHandler(object sender, NoteArgs e)
-        {
-            ushort startMeasure = e.StartMeasure;
-            ushort endMeasure = e.EndMeasure;
-            byte startNote = e.StartCol;
-            byte endNote = e.EndCol;
-            byte row = (byte)Math.Abs((int)e.NoteName - 82);
-            Label note;
-
-            if (startMeasure == endMeasure)
-            {
-                note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
-                )
-                .Children
-                .Cast<UIElement>()
-                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote);
-                note.Background = endNoteColor;
-
-                note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
-                )
-                .Children
-                .Cast<UIElement>()
-                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote - 1);
-                note.Background = middleNoteColor;
-
-                note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
-                )
-                .Children
-                .Cast<UIElement>()
-                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == startNote);
-                note.Background = startNoteColor;
-                return;
-            }
-            if (endNote == 0)
-            {
-                note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure]
-                )
-                .Children
-                .Cast<UIElement>()
-                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote);
-                note.Background = endNoteColor;
-
-                note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure - 1]
-                )
-                .Children
-                .Cast<UIElement>()
-                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == (int)composition!.Signature - 1);
-                note.Background = middleNoteColor;
-
-                note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
-                )
-                .Children
-                .Cast<UIElement>()
-                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == startNote);
-                note.Background = startNoteColor;
-                return;
-            }
-
-            note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure]
-                )
-                .Children
-                .Cast<UIElement>()
-                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote);
-            note.Background = endNoteColor;
-
-            note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure]
-                )
-                .Children
-                .Cast<UIElement>()
-                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote - 1);
-            note.Background = middleNoteColor;
-        }
-        private void DecreasePercussionNoteHandler(object sender, NoteArgs e)
-        {
-            ushort startMeasure = e.StartMeasure;
-            ushort endMeasure = e.EndMeasure;
-            byte startNote = e.StartCol;
-            byte endNote = e.EndCol;
-            byte row = (byte)Math.Abs((int)e.NoteName - 82);
-            Label note;
-            if (endNote == (byte)composition.Signature - 1)
-            {
-                note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure + 1]
-                )
-                .Children
-                .Cast<UIElement>()
-                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == 0);
-                note.Background = emptyNoteColor;
-
-                note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure]
-                )
-                .Children
-                .Cast<UIElement>()
-                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote);
-                note.Background = endNoteColor;
-            }
-            else
-            {
-                note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure]
-                )
-                .Children
-                .Cast<UIElement>()
-                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote + 1);
-                note.Background = emptyNoteColor;
-
-                note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.EndMeasure]
-                )
-                .Children
-                .Cast<UIElement>()
-                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote);
-                note.Background = endNoteColor;
-            }
-            note = (Label)(
-                    (System.Windows.Controls.Grid)MeasuresStack.Children[e.StartMeasure]
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[startMeasure]
                 )
                 .Children
                 .Cast<UIElement>()
@@ -1182,7 +1063,143 @@ namespace WPFSequencer
                 note.Background = emptyNoteColor;
             }
         }
+     
+        private void IncreasePercussionNoteHandler(object sender, NoteArgs e)
+        {
+            ushort startMeasure = e.StartMeasure;
+            ushort endMeasure = e.EndMeasure;
+            byte startNote = e.StartCol;
+            byte endNote = e.EndCol;
+            byte row = (byte)Math.Abs((int)e.NoteName - 82);
+            Label note;
 
+            if (startMeasure == endMeasure)
+            {
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[endMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote);
+                note.Background = endNoteColor;
+
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[endMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote - 1);
+                note.Background = middleNoteColor;
+
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[startMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == startNote);
+                note.Background = startNoteColor;
+                return;
+            }
+            if (endNote == 0)
+            {
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[endMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote);
+                note.Background = endNoteColor;
+
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[endMeasure - 1]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == (int)composition!.Signature - 1);
+                note.Background = middleNoteColor;
+
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[startMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == startNote);
+                note.Background = startNoteColor;
+                return;
+            }
+
+            note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[endMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote);
+            note.Background = endNoteColor;
+
+            note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[endMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote - 1);
+            note.Background = middleNoteColor;
+        }
+        private void DecreasePercussionNoteHandler(object sender, NoteArgs e)
+        {
+            ushort startMeasure = e.StartMeasure;
+            ushort endMeasure = e.EndMeasure;
+            byte startNote = e.StartCol;
+            byte endNote = e.EndCol;
+            byte row = (byte)Math.Abs((int)e.NoteName - 82);
+            Label note;
+            if (endNote == (byte)composition.Signature - 1)
+            {
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[endMeasure + 1]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == 0);
+                note.Background = emptyNoteColor;
+
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[endMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote);
+                note.Background = endNoteColor;
+            }
+            else
+            {
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[endMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote + 1);
+                note.Background = emptyNoteColor;
+
+                note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[endMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote);
+                note.Background = endNoteColor;
+            }
+            note = (Label)(
+                    (System.Windows.Controls.Grid)MeasuresStack.Children[startMeasure]
+                )
+                .Children
+                .Cast<UIElement>()
+                .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == startNote);
+            if (startMeasure == endMeasure && startNote == endNote)
+            {
+                note.Background = singleNoteColor;
+            }
+            else note.Background = startNoteColor;
+        }
         private void DeletePercussionNoteHandler(object sender, NoteArgs e)
         {
             ushort startMeasure = e.StartMeasure;
@@ -1237,6 +1254,73 @@ namespace WPFSequencer
                     .Cast<UIElement>()
                     .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == n);
                 note.Background = emptyNoteColor;
+            }
+        }
+
+
+        private void BpmSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (BpmLabel != null) BpmLabel.Content = Convert.ToByte(BpmSlider.Value).ToString();
+            composition?.changeBpm(Convert.ToByte(BpmSlider.Value));
+        }
+
+
+        private void Load_Composition_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new Microsoft.Win32.OpenFileDialog();
+            //dialog.FileName = "Document"; // Default file name
+            dialog.DefaultExt = ".nvamidi"; // Default file extension
+            dialog.Filter = "NVAmidi documents (.nvamidi)|*.nvamidi"; // Filter files by extension
+
+            // Show open file dialog box
+            bool? result = dialog.ShowDialog();
+
+            // Process open file dialog box results
+            if (result == true)
+            {
+                // Open document
+                filePath = dialog.FileName;
+            }
+            else return;
+            CreateComposition();
+            composition?.loadFromBinary(filePath);
+            UIChangesAfterCompositionCreation();
+            ChangeMenuItems(true);
+            Title = "NVAmidi - " + System.IO.Path.GetFileNameWithoutExtension(filePath);
+            foreach (var item in composition.Tracks.Values)
+            {
+                CreateTrack((byte)item.Channel, item.InstrumentName, item.Volume, item.IsActive);
+            }
+            if (composition.PercussionTrack != null) CreatePercussionTrack(composition.PercussionTrack.Volume, composition.PercussionTrack.IsActive);
+        }
+        private void MenuSaveItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (filePath == null)
+            {
+                MenuSaveAsNewItem_Click(sender, e);
+                return;
+            }
+            composition?.saveToBinary(filePath);
+        }
+        private void MenuSaveAsNewItem_Click(object sender, RoutedEventArgs e)
+        {
+            // Configure save file dialog box
+            if(composition == null) return;
+            var dialog = new Microsoft.Win32.SaveFileDialog();
+            dialog.FileName = "New file"; // Default file name
+            dialog.DefaultExt = ".nvamidi"; // Default file extension
+            dialog.Filter = "NVAmidi documents (.nvamidi)|*.nvamidi"; // Filter files by extension
+
+            // Show save file dialog box
+            bool? result = dialog.ShowDialog();
+
+            // Process save file dialog box results
+            if (result == true)
+            {
+                // Save document
+                string filename = dialog.FileName;
+                composition?.saveToBinary(filename);
+                Title = "NVAmidi - " + System.IO.Path.GetFileNameWithoutExtension(filePath);
             }
         }
     }
