@@ -47,12 +47,16 @@ namespace WPFSequencer
         {
             System.Windows.Controls.Grid grid = new System.Windows.Controls.Grid();
             grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(cellSize) });
+            for (byte i = 0; i < (byte)s; i++)
+            {
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(cellSize) });
+            }
             for (int i = 1; i < 129; i++)
             {
                 grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(cellSize) });
                 for (byte j = 0; j < (byte)s; j++)
                 {
-                    grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(cellSize) });
+                    //grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(cellSize) });
                     Label label = new Label() { Background = emptyNoteColor, BorderBrush = Brushes.Gray, BorderThickness = new Thickness(1) };
                     label.MouseDown += (o, e) =>
                     {
@@ -97,19 +101,23 @@ namespace WPFSequencer
             System.Windows.Controls.Grid.SetRowSpan(label2, 129);  
             grid.Children.Add(label2);
 
-            grid.Width = (byte)s * cellSize + 1;
+            //grid.Width = (byte)s * cellSize + 1;
             return grid;
         }
         private System.Windows.Controls.Grid MakePercussionMeasure(Signatures s, ushort index)
         {
             System.Windows.Controls.Grid grid = new System.Windows.Controls.Grid();
             grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(cellSize) });
+            for (byte i = 0; i < (byte)s; i++)
+            {
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(cellSize) });
+            }
             for (int i = 1; i < 48; i++)
             {
                 grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(cellSize) });
                 for (byte j = 0; j < (byte)s; j++)
                 {
-                    grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(cellSize) });
+                    //grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(cellSize) });
                     Label label = new Label() { Background = emptyNoteColor, BorderBrush = Brushes.Gray, BorderThickness = new Thickness(1) };
                     label.MouseDown += (o, e) =>
                     {
@@ -153,7 +161,7 @@ namespace WPFSequencer
             System.Windows.Controls.Grid.SetRowSpan(label2, 129);
             grid.Children.Add(label2);
 
-            grid.Width = (byte)s * cellSize + 1;
+            //grid.Width = (byte)s * cellSize + 1;
             return grid;
         }
         
@@ -660,10 +668,10 @@ namespace WPFSequencer
                 if (grids[(byte)track.Channel].Children.Count == 0)
                 {
                     TransferFromMeasureStackToGrids(track);
-                    UpdateGrid(track);
+                    UpdatePercussionGrid();
                     TransferFromGridsToMeasureStack(track);
                 }
-                else UpdateGrid(track);
+                else UpdatePercussionGrid();
             };
             track.TrackGrid.AddedNoteEvent += (o, e) =>
             {
