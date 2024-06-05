@@ -33,11 +33,13 @@ namespace WPFSequencer
         Brush endNoteColor = Brushes.Red;
         Brush middleNoteColor = Brushes.Yellow;
         string? filePath = null;
+        string TitleName = "NVAmidi";
+        bool? saved = null;
         public MainWindow()
         {
             grids = new Dictionary<byte, StackPanel>();
             InitializeComponent();
-            Title = "NVAmidi";
+            Title = TitleName;
             BpmLabel.Content = "";
             ResizeMode = ResizeMode.NoResize;
             ChangeMenuItems(false);
@@ -323,6 +325,8 @@ namespace WPFSequencer
                 var value = Convert.ToByte(volumeSlider.Value);
                 volumeValueLabel.Content = value.ToString();
                 composition?.changeTrackVolume((byte)channel, value);
+                saved = false;
+                ChangesMade();
             };
             volumeValueLabel.Content = Convert.ToByte(volumeSlider.Value).ToString();
 
@@ -348,10 +352,14 @@ namespace WPFSequencer
             activeCheckBox.Checked += (object s, RoutedEventArgs e) =>
             {
                 composition?.unmuteTrack((byte)channel!);
+                saved = false;
+                ChangesMade();
             };
             activeCheckBox.Unchecked += (object s, RoutedEventArgs e) =>
             {
                 composition?.muteTrack((byte)channel!);
+                saved = false;
+                ChangesMade();
             };
 
             StackPanel buttonsStackPanel = new StackPanel()
@@ -373,6 +381,8 @@ namespace WPFSequencer
                     var track = composition?.Tracks[(byte)channel!];
                     track?.changeInstrument(trackAdd.Instrument);
                     instrumentNameLabel.Content = track?.InstrumentName;
+                    saved = false;
+                    ChangesMade();
                 }
             };
             Button deleteButton = new Button()
@@ -391,6 +401,8 @@ namespace WPFSequencer
                 {
                     MeasuresStack.Children.Clear();
                     selectedTrack = null;
+                    saved = false;
+                    ChangesMade();
                     return;
                 }
 
@@ -399,6 +411,8 @@ namespace WPFSequencer
                 if (ch == 10) selectedTrack = composition!.PercussionTrack!;
                 else selectedTrack = composition!.Tracks[ch];
                 TransferFromGridsToMeasureStack(selectedTrack);
+                saved = false;
+                ChangesMade();
                 return;
 
 
@@ -496,6 +510,8 @@ namespace WPFSequencer
                 volumeValueLabel.Content = value.ToString();
                 var track = composition?.PercussionTrack;
                 track.Volume = value;
+                saved = false;
+                ChangesMade();
             };
             volumeValueLabel.Content = Convert.ToByte(volumeSlider.Value).ToString();
 
@@ -522,11 +538,15 @@ namespace WPFSequencer
             {
                 var track = composition?.PercussionTrack;
                 track.IsActive = true;
+                saved = false;
+                ChangesMade();
             };
             activeCheckBox.Unchecked += (object s, RoutedEventArgs e) =>
             {
                 var track = composition?.PercussionTrack;
                 track.IsActive = false;
+                saved = false;
+                ChangesMade();
             };
 
             StackPanel buttonsStackPanel = new StackPanel()
@@ -549,6 +569,8 @@ namespace WPFSequencer
                 {
                     MeasuresStack.Children.Clear();
                     selectedTrack = null;
+                    saved = false;
+                    ChangesMade();
                     return;
                 }
 
@@ -556,6 +578,8 @@ namespace WPFSequencer
                 var ch = Convert.ToByte(name.Remove(0, 5));
                 selectedTrack = composition!.Tracks[ch];
                 TransferFromGridsToMeasureStack(selectedTrack);
+                saved = false;
+                ChangesMade();
                 return;
             };
             buttonsStackPanel.Children.Add(deleteButton);
@@ -630,6 +654,8 @@ namespace WPFSequencer
                     TransferFromGridsToMeasureStack(track);
                 }
                 else UpdateGrid(track);
+                saved = false;
+                ChangesMade();
             };
             track.TrackGrid.AddedNoteEvent += (o, e) =>
             {
@@ -642,12 +668,16 @@ namespace WPFSequencer
                 .Cast<UIElement>()
                 .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == col);
                 note.Background = singleNoteColor;
+                saved = false;
+                ChangesMade();
             };
             track.TrackGrid.DeletedNoteEvent += DeleteNoteHandler;
             track.TrackGrid.IncreasedNoteEvent += IncreaseNoteHandler;
             track.TrackGrid.DecreasedNoteEvent += DecreaseNoteHandler;
             if (channel != null && channel < 17)
             {
+                saved = false;
+                ChangesMade();
                 var trackStack = CreateUITrack(instrument, channel, volume, isAct);
                 TrackStack.Children.Add(trackStack);
                 grids[(byte)channel] = new StackPanel();
@@ -660,6 +690,13 @@ namespace WPFSequencer
                 TransferFromGridsToMeasureStack(selectedTrack);
             }
         }
+
+        private void ChangesMade()
+        {
+            if(filePath == null) return;
+            Title = TitleName + " - " + System.IO.Path.GetFileNameWithoutExtension(filePath) + (saved == true ? string.Empty : '*');
+        }
+
         private void CreatePercussionTrack(byte volume = 127, bool isAct = true)
         {
             Track track = composition.PercussionTrack!;
@@ -672,6 +709,8 @@ namespace WPFSequencer
                     TransferFromGridsToMeasureStack(track);
                 }
                 else UpdatePercussionGrid();
+                saved = false;
+                ChangesMade();
             };
             track.TrackGrid.AddedNoteEvent += (o, e) =>
             {
@@ -693,7 +732,12 @@ namespace WPFSequencer
                     UpdatePercussionGrid();
                     TransferFromGridsToMeasureStack(track);
                 }
+                saved = false;
+                ChangesMade();
             };
+
+            saved = false;
+            ChangesMade();
             track.TrackGrid.DeletedNoteEvent += DeletePercussionNoteHandler;
             track.TrackGrid.IncreasedNoteEvent += IncreasePercussionNoteHandler;
             track.TrackGrid.DecreasedNoteEvent += DecreasePercussionNoteHandler;
@@ -905,6 +949,8 @@ namespace WPFSequencer
                 .Cast<UIElement>()
                 .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == startNote);
                 note.Background = startNoteColor;
+                saved = false;
+                ChangesMade();
                 return;
             }
             if (endNote == 0)
@@ -932,6 +978,8 @@ namespace WPFSequencer
                 .Cast<UIElement>()
                 .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == startNote);
                 note.Background = startNoteColor;
+                saved = false;
+                ChangesMade();
                 return;
             }
 
@@ -950,6 +998,8 @@ namespace WPFSequencer
                 .Cast<UIElement>()
                 .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote - 1);
             note.Background = middleNoteColor;
+            saved = false;
+            ChangesMade();
         }
         private void DecreaseNoteHandler(object sender, NoteArgs e)
         {
@@ -1006,6 +1056,8 @@ namespace WPFSequencer
                 note.Background = singleNoteColor;
             }
             else note.Background = startNoteColor;
+            saved = false;
+            ChangesMade();
         }
         private void DeleteNoteHandler(object sender, NoteArgs e)
         {
@@ -1027,6 +1079,8 @@ namespace WPFSequencer
                     .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == n);
                     note.Background = emptyNoteColor;
                 }
+                saved = false;
+                ChangesMade();
                 return;
             }
             for (byte n = startNote; n < (byte)composition.Signature; n++)
@@ -1062,6 +1116,8 @@ namespace WPFSequencer
                     .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == n);
                 note.Background = emptyNoteColor;
             }
+            saved = false;
+            ChangesMade();
         }
      
         private void IncreasePercussionNoteHandler(object sender, NoteArgs e)
@@ -1098,6 +1154,8 @@ namespace WPFSequencer
                 .Cast<UIElement>()
                 .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == startNote);
                 note.Background = startNoteColor;
+                saved = false;
+                ChangesMade();
                 return;
             }
             if (endNote == 0)
@@ -1125,6 +1183,8 @@ namespace WPFSequencer
                 .Cast<UIElement>()
                 .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == startNote);
                 note.Background = startNoteColor;
+                saved = false;
+                ChangesMade();
                 return;
             }
 
@@ -1143,6 +1203,8 @@ namespace WPFSequencer
                 .Cast<UIElement>()
                 .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == endNote - 1);
             note.Background = middleNoteColor;
+            saved = false;
+            ChangesMade();
         }
         private void DecreasePercussionNoteHandler(object sender, NoteArgs e)
         {
@@ -1199,6 +1261,8 @@ namespace WPFSequencer
                 note.Background = singleNoteColor;
             }
             else note.Background = startNoteColor;
+            saved = false;
+            ChangesMade();
         }
         private void DeletePercussionNoteHandler(object sender, NoteArgs e)
         {
@@ -1255,6 +1319,8 @@ namespace WPFSequencer
                     .First(t => System.Windows.Controls.Grid.GetRow(t) == row && System.Windows.Controls.Grid.GetColumn(t) == n);
                 note.Background = emptyNoteColor;
             }
+            saved = false;
+            ChangesMade();
         }
 
 
@@ -1270,7 +1336,7 @@ namespace WPFSequencer
             var dialog = new Microsoft.Win32.OpenFileDialog();
             //dialog.FileName = "Document"; // Default file name
             dialog.DefaultExt = ".nvamidi"; // Default file extension
-            dialog.Filter = "NVAmidi documents (.nvamidi)|*.nvamidi"; // Filter files by extension
+            dialog.Filter = $"{TitleName} documents (.nvamidi)|*.nvamidi"; // Filter files by extension
 
             // Show open file dialog box
             bool? result = dialog.ShowDialog();
@@ -1286,12 +1352,14 @@ namespace WPFSequencer
             composition?.loadFromBinary(filePath);
             UIChangesAfterCompositionCreation();
             ChangeMenuItems(true);
-            Title = "NVAmidi - " + System.IO.Path.GetFileNameWithoutExtension(filePath);
+            Title = TitleName + " - " + System.IO.Path.GetFileNameWithoutExtension(filePath);
             foreach (var item in composition.Tracks.Values)
             {
                 CreateTrack((byte)item.Channel, item.InstrumentName, item.Volume, item.IsActive);
             }
             if (composition.PercussionTrack != null) CreatePercussionTrack(composition.PercussionTrack.Volume, composition.PercussionTrack.IsActive);
+            saved = true;
+            ChangesMade();
         }
         private void MenuSaveItem_Click(object sender, RoutedEventArgs e)
         {
@@ -1301,15 +1369,17 @@ namespace WPFSequencer
                 return;
             }
             composition?.saveToBinary(filePath);
+            saved = true;
+            ChangesMade();
         }
         private void MenuSaveAsNewItem_Click(object sender, RoutedEventArgs e)
         {
             // Configure save file dialog box
             if(composition == null) return;
             var dialog = new Microsoft.Win32.SaveFileDialog();
-            dialog.FileName = "New file"; // Default file name
+            dialog.FileName = "New_file"; // Default file name
             dialog.DefaultExt = ".nvamidi"; // Default file extension
-            dialog.Filter = "NVAmidi documents (.nvamidi)|*.nvamidi"; // Filter files by extension
+            dialog.Filter = $"{TitleName} documents (.nvamidi)|*.nvamidi"; // Filter files by extension
 
             // Show save file dialog box
             bool? result = dialog.ShowDialog();
@@ -1318,9 +1388,10 @@ namespace WPFSequencer
             if (result == true)
             {
                 // Save document
-                string filename = dialog.FileName;
-                composition?.saveToBinary(filename);
-                Title = "NVAmidi - " + System.IO.Path.GetFileNameWithoutExtension(filePath);
+                filePath = dialog.FileName;
+                composition?.saveToBinary(filePath);
+                saved = true;
+                ChangesMade();
             }
         }
     }
